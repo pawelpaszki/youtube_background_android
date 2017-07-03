@@ -24,9 +24,9 @@
 
     <string name="clear_list">Clear recently played list</string>
 
-    <string name="email">vanste25@gmail.com</string>
+    <string name="email">pawelpaszki@gmail.com</string>
     <string name="date">March 2016.</string>
-    <string name="myName">Stevan Medic</string>
+    <string name="myName">Pawel Paszki</string>
 
     <string name="number_of_videos">Number of videos:</string>
     <string name="status">Status:</string>
@@ -34,5 +34,5 @@
     <string name="ok">ok</string>
     <string name="choose_colors">Choose background and text color</string>
     <string name="cancel">cancel</string>
-    <string name="failed_playback">Playback failed!</string>
+    <string name="failed_playback">Playback failed! Please try again</string>
 </resources>

@@ -19,17 +19,22 @@ import android.Manifest;
 import android.accounts.AccountManager;
 import android.annotation.TargetApi;
 import android.app.SearchManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.database.MatrixCursor;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
+import android.support.transition.Visibility;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -47,8 +52,11 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.SeekBar;
 
 import com.flask.colorpicker.ColorPickerView;
 import com.flask.colorpicker.OnColorSelectedListener;
@@ -99,15 +107,56 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private int initialColor = 0xffff0040;
     private int initialColors[] = new int[2];
 
+    private SeekBar mDurationSeekbar;
+    private ImageView mPreviousVideo;
+    private ImageView mPlay;
+    private ImageView mNextVideo;
+    private ImageView mLoopVideo;
+    private boolean mIsPlaying;
+    private boolean mHasPlaybackStarted;
+    private int mProgressSet;
+    private int mPausedAt;
+
+
     private SearchFragment searchFragment;
     private RecentlyWatchedFragment recentlyPlayedFragment;
     private FavoritesFragment favoritesFragment;
 
+    private static final String ACTION_PLAYBACK_STARTED = "playbackStarted";
+    public static final String ACTION_PLAY = "action_play";
+    public static final String ACTION_PAUSE = "action_pause";
+    public static final String ACTION_NEXT = "action_next";
+    public static final String ACTION_PREVIOUS = "action_previous";
+    public static final String ACTION_SEEK = "action_seek";
+    public static final String ACTION_SEEKBAR_UPDATE = "action_update";
+
     private int[] tabIcons = {
-            R.drawable.ic_action_heart,
+            R.drawable.ic_star,
             R.drawable.ic_recently_wached,
             R.drawable.ic_search,
             R.drawable.ic_action_playlist
+    };
+
+    private BroadcastReceiver mPlaybackStartedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i("extras", intent.getStringExtra("duration"));
+            setDuration(intent.getStringExtra("duration"));
+        }
+    };
+
+    private BroadcastReceiver mPlaybackUpdated = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int progress = intent.getIntExtra("progress", 0);
+            Log.i("progress received", String.valueOf(progress));
+            if(progress != mProgressSet && progress != mPausedAt) {
+                setPauseIcon();
+                setControlsEnabled(true);
+                mDurationSeekbar.setProgress(progress);
+            }
+
+        }
     };
 
     private NetworkConf networkConf;
@@ -133,10 +182,177 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
         networkConf = new NetworkConf(this);
 
+        if (mPlaybackStartedReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_PLAYBACK_STARTED);
+            registerReceiver(mPlaybackStartedReceiver, intentFilter);
+        }
+
+        if (mPlaybackUpdated != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_SEEKBAR_UPDATE);
+            registerReceiver(mPlaybackUpdated, intentFilter);
+        }
+
+        mDurationSeekbar = (SeekBar) findViewById(R.id.seekBar);
+
+        mDurationSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                if(mIsPlaying) {
+                    Log.i("progress set", String.valueOf(mDurationSeekbar.getProgress()));
+                    mProgressSet = mDurationSeekbar.getProgress();
+                    sendBroadcast("seek");
+                    setPlayIconAndDisableControls(true);
+                }
+            }
+        });
+        mDurationSeekbar.setEnabled(false);
+
+        mPreviousVideo = (ImageView) findViewById(R.id.previous);
+        mPreviousVideo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mHasPlaybackStarted) {
+                    sendBroadcast("previous");
+                    mDurationSeekbar.setProgress(0);
+                    setPlayIconAndDisableControls(true);
+                }
+            }
+        });
+
+        mPlay = (ImageView) findViewById(R.id.play);
+
+        mPlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mHasPlaybackStarted) {
+                    if(mIsPlaying) {
+                        mIsPlaying = false;
+                        sendBroadcast("pause");
+                        mPausedAt = mDurationSeekbar.getProgress();
+                        setPlayIconAndDisableControls(false);
+                    } else {
+                        sendBroadcast("play");
+                        setPauseIcon();
+                        mIsPlaying = true;
+                    }
+                }
+            }
+        });
+        mNextVideo = (ImageView) findViewById(R.id.next);
+        mNextVideo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mHasPlaybackStarted) {
+                    sendBroadcast("next");
+                    setPlayIconAndDisableControls(true);
+                    mDurationSeekbar.setProgress(0);
+                }
+            }
+        });
+
+        mLoopVideo = (ImageView) findViewById(R.id.loop);
+        mLoopVideo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+        setControlsVisible(false);
         setupTabIcons();
         loadColor();
 
         requestPermissions();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mPlaybackStartedReceiver != null) {
+            unregisterReceiver(mPlaybackStartedReceiver);
+        }
+    }
+
+    private void setControlsVisible(boolean visible) {
+        int visibility;
+        if(visible) {
+            visibility = View.VISIBLE;
+        } else {
+            visibility = View.GONE;
+        }
+        mPlay.setVisibility(visibility);
+        mNextVideo.setVisibility(visibility);
+        mPreviousVideo.setVisibility(visibility);
+        mDurationSeekbar.setVisibility(visibility);
+        mLoopVideo.setVisibility(visibility);
+    }
+
+    private void sendBroadcast(String action) {
+        Intent new_intent = new Intent();
+
+        switch(action) {
+            case "play":
+                new_intent.setAction(ACTION_PLAY);
+                break;
+            case "pause":
+                new_intent.setAction(ACTION_PAUSE);
+                break;
+            case "next":
+                new_intent.setAction(ACTION_NEXT);
+                break;
+            case "previous":
+                new_intent.setAction(ACTION_PREVIOUS);
+                break;
+            case "seek":
+                new_intent.setAction(ACTION_SEEK);
+                new_intent.putExtra("seekTo", mProgressSet);
+                break;
+        }
+        sendBroadcast(new_intent);
+    }
+
+    private void setControlsEnabled(boolean value) {
+        mPlay.setEnabled(value);
+        mNextVideo.setEnabled(value);
+        mPreviousVideo.setEnabled(value);
+        mDurationSeekbar.setEnabled(value);
+    }
+
+    /**
+     * sets max value of seekbar
+     */
+    private void setDuration(String duration) {
+        try {
+            String[] values = duration.split(":");
+            int videoDuration;
+            if(values.length > 0) {
+                if(values.length == 3) {
+                    videoDuration = Integer.parseInt(values[2]) + 60 * Integer.parseInt(values[1]) + 3600 * Integer.parseInt(values[0]);
+                } else {
+                    videoDuration = Integer.parseInt(values[1]) + 60 * Integer.parseInt(values[0]);
+                }
+                mDurationSeekbar.setMax(videoDuration);
+                setControlsVisible(true);
+                Resources res = getResources();
+                Drawable pause = res.getDrawable(android.R.drawable.ic_media_pause);
+                mPlay.setImageDrawable(pause);
+                setControlsEnabled(true);
+                mIsPlaying = true;
+                mHasPlaybackStarted = true;
+            }
+
+        } catch (Exception e) {
+            setControlsEnabled(false);
+        }
     }
 
     /**
@@ -212,7 +428,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     public void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-
         handleIntent(intent);
     }
 
@@ -281,6 +496,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             networkConf.createNetErrorDialog();
             return;
         }
+        setPlayIconAndDisableControls(true);
         Intent serviceIntent = new Intent(this, BackgroundAudioService.class);
         serviceIntent.setAction(BackgroundAudioService.ACTION_PLAY);
         serviceIntent.putExtra(Config.YOUTUBE_TYPE, ItemType.YOUTUBE_MEDIA_TYPE_VIDEO);
@@ -294,6 +510,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             networkConf.createNetErrorDialog();
             return;
         }
+        setPlayIconAndDisableControls(true);
         Intent serviceIntent = new Intent(this, BackgroundAudioService.class);
         serviceIntent.setAction(BackgroundAudioService.ACTION_PLAY);
         serviceIntent.putExtra(Config.YOUTUBE_TYPE, ItemType.YOUTUBE_MEDIA_TYPE_PLAYLIST);
@@ -301,6 +518,23 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         serviceIntent.putExtra(Config.YOUTUBE_TYPE_PLAYLIST_VIDEO_POS, position);
         startService(serviceIntent);
     }
+
+    private void setPlayIconAndDisableControls(boolean disable) {
+        Resources res = getResources();
+        Drawable play = res.getDrawable(android.R.drawable.ic_media_play);
+        mPlay.setImageDrawable(play);
+        if(disable) {
+            setControlsEnabled(false);
+        }
+    }
+
+    private void setPauseIcon() {
+        Resources res = getResources();
+        Drawable pause = res.getDrawable(android.R.drawable.ic_media_pause);
+        mPlay.setImageDrawable(pause);
+    }
+
+
 
     @Override
     public void onFavoritesSelected(YouTubeVideo video, boolean isChecked) {
@@ -468,8 +702,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             alertDialog.setIcon(R.mipmap.ic_launcher);
 
             alertDialog.setMessage(getString(R.string.app_name) + " " + BuildConfig.VERSION_NAME + "\n\n" +
-                    getString(R.string.email) + "\n\n" +
-                    getString(R.string.date) + "\n");
+                    getString(R.string.email) + "\n\n");
             alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, getString(R.string.ok),
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {

@@ -18,12 +18,15 @@ package com.pawelpaszki.youtubeplus;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.RemoteException;
@@ -67,6 +70,10 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     public static final String ACTION_NEXT = "action_next";
     public static final String ACTION_PREVIOUS = "action_previous";
     public static final String ACTION_STOP = "action_stop";
+    public static final String ACTION_SEEK = "action_seek";
+    public static final String ACTION_SEEKBAR_UPDATE = "action_update";
+
+    private Handler mSeekBarProgressHandler;
 
     private MediaPlayer mMediaPlayer;
     private MediaSessionCompat mSession;
@@ -78,13 +85,52 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 
     private boolean isStarting = false;
     private int currentSongIndex = 0;
+    private boolean mSeekToSet;
 
     private ArrayList<YouTubeVideo> youTubeVideos;
 
     private NotificationCompat.Builder builder = null;
+    private int mSetSeekToPosition;
 
     private DeviceBandwidthSampler deviceBandwidthSampler;
     private ConnectionQuality connectionQuality = ConnectionQuality.MODERATE;
+    private static final String ACTION_PLAYBACK_STARTED = "playbackStarted";
+
+    private BroadcastReceiver mPauseReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleIntent(intent);
+        }
+    };
+
+    private BroadcastReceiver mPlayReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleIntent(intent);
+        }
+    };
+
+    private BroadcastReceiver mNextReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleIntent(intent);
+        }
+    };
+
+    private BroadcastReceiver mPreviousReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleIntent(intent);
+        }
+    };
+
+    private BroadcastReceiver mSeekToReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleIntent(intent);
+        }
+    };
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -101,6 +147,27 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         initMediaSessions();
         initPhoneCallListener();
         deviceBandwidthSampler = DeviceBandwidthSampler.getInstance();
+
+        if (mPauseReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_PAUSE);
+            registerReceiver(mPauseReceiver, intentFilter);
+        }
+        if (mPlayReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_PLAY);
+            registerReceiver(mPlayReceiver, intentFilter);
+        }
+        if (mNextReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_NEXT);
+            registerReceiver(mNextReceiver, intentFilter);
+        }
+        if (mPreviousReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_PREVIOUS);
+            registerReceiver(mPreviousReceiver, intentFilter);
+        }
+        if (mSeekToReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_SEEK);
+            registerReceiver(mSeekToReceiver, intentFilter);
+        }
     }
 
     @Override
@@ -136,6 +203,22 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if(mNextReceiver != null) {
+            unregisterReceiver(mNextReceiver);
+        }
+        if (mPauseReceiver != null) {
+            unregisterReceiver(mPauseReceiver);
+        }
+        if (mPlayReceiver != null) {
+            unregisterReceiver(mPlayReceiver);
+        }
+        if (mPreviousReceiver != null) {
+            unregisterReceiver(mPreviousReceiver);
+        }
+        if (mSeekToReceiver != null) {
+            unregisterReceiver(mSeekToReceiver);
+        }
+
     }
 
     /**
@@ -158,7 +241,41 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
             mController.getTransportControls().skipToNext();
         } else if (action.equalsIgnoreCase(ACTION_STOP)) {
             mController.getTransportControls().stop();
+        } else if (action.equalsIgnoreCase(ACTION_SEEK)) {
+            int value = intent.getIntExtra("seekTo", 0);
+            Log.i("seek value", String.valueOf(value));
+            seekVideo(value * 1000);
+
+            mSetSeekToPosition = value * 1000;
+            handleSeekBarChange();
         }
+    }
+
+    private void handleSeekBarChange() {
+        if(mSeekBarProgressHandler != null) {
+            mSeekBarProgressHandler.removeCallbacksAndMessages(null);
+            mSeekBarProgressHandler = null;
+        }
+        mSeekBarProgressHandler = new Handler();
+        mSeekBarProgressHandler.postDelayed(new Runnable(){
+            public void run(){
+                Log.i("seekbar handle", "active");
+                if((mSetSeekToPosition != mMediaPlayer.getCurrentPosition() * 1000 && mSeekToSet) || !mSeekToSet) {
+                    if(mMediaPlayer.isPlaying()) {
+                        if(mSetSeekToPosition != mMediaPlayer.getCurrentPosition() * 1000) {
+                            Intent new_intent = new Intent();
+                            new_intent.setAction(ACTION_SEEKBAR_UPDATE);
+                            new_intent.putExtra("progress", mMediaPlayer.getCurrentPosition() / 1000);
+                            sendBroadcast(new_intent);
+                            mSeekToSet = false;
+                            Log.i("seek value", String.valueOf(mMediaPlayer.getCurrentPosition() / 1000));
+                        }
+                    }
+                }
+                mSeekBarProgressHandler.postDelayed(this, 1000);
+
+            }
+        }, 1000);
     }
 
     /**
@@ -296,7 +413,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         PendingIntent clickPendingIntent = PendingIntent.getActivity(this, 0, clickIntent, 0);
 
         builder = new NotificationCompat.Builder(this);
-        builder.setSmallIcon(R.mipmap.ic_launcher);
+        builder.setSmallIcon(getApplicationContext().getResources().getIdentifier("ic_launcher", "mipmap", getApplicationContext().getPackageName()));
         builder.setContentTitle(videoItem.getTitle());
         builder.setContentInfo(videoItem.getDuration());
         builder.setShowWhen(false);
@@ -527,14 +644,20 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                         mMediaPlayer.prepare();
                         mMediaPlayer.start();
-
-                        Toast.makeText(YTApplication.getAppContext(), videoItem.getTitle(), Toast.LENGTH_SHORT).show();
+                        sendBroadcast(videoItem.getDuration());
                     }
                 } catch (IOException io) {
                     io.printStackTrace();
                 }
             }
         }.execute(youtubeLink);
+    }
+
+    private void sendBroadcast(String duration) {
+        Intent new_intent = new Intent();
+        new_intent.setAction(ACTION_PLAYBACK_STARTED);
+        new_intent.putExtra("duration", duration);
+        sendBroadcast(new_intent);
     }
 
     @Override
