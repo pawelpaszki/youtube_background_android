@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         @Override
         public void onReceive(Context context, Intent intent) {
             int progress = intent.getIntExtra("progress", 0);
-            Log.i("progress received", String.valueOf(progress));
+            //Log.i("progress received", String.valueOf(progress));
             if(progress != mProgressSet && progress != mPausedAt) {
                 setPauseIcon();
                 setControlsEnabled(true);
@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 if(mIsPlaying) {
-                    Log.i("progress set", String.valueOf(mDurationSeekbar.getProgress()));
+                    //Log.i("progress set", String.valueOf(mDurationSeekbar.getProgress()));
                     mProgressSet = mDurationSeekbar.getProgress();
                     sendBroadcast("seek");
                     setPlayIconAndDisableControls(true);
