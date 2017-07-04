@@ -7,7 +7,7 @@ import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
  */
 
 public interface ItemEventsListener<Model> {
-    void onShareClicked(String itemId);
+    void onRemoveClicked(YouTubeVideo video);
 
     void onFavoriteClicked(YouTubeVideo video, boolean isChecked);
 

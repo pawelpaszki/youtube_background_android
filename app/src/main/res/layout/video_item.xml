@@ -72,7 +72,7 @@
                 android:button="@null" />
 
             <ImageView
-                android:id="@+id/shareButton"
+                android:id="@+id/deleteButton"
                 android:layout_width="26dp"
                 android:layout_height="26dp"
                 android:layout_alignParentBottom="true"
@@ -80,7 +80,8 @@
                 android:layout_marginRight="20dp"
                 android:layout_toLeftOf="@id/favoriteButton"
                 android:layout_toStartOf="@id/favoriteButton"
-                android:background="@drawable/share_button_selector" />
+                android:visibility="invisible"
+                android:background="@android:drawable/ic_delete" />
 
         </RelativeLayout>
     </LinearLayout>

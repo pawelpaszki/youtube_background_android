@@ -19,9 +19,11 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.pawelpaszki.youtubeplus.MainActivity;
 import com.pawelpaszki.youtubeplus.R;
@@ -72,13 +74,12 @@ public class RecentlyWatchedFragment extends BaseFragment implements
         View v = inflater.inflate(R.layout.fragment_list, container, false);
         recentlyPlayedListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         recentlyPlayedListView.setLayoutManager(new LinearLayoutManager(context));
-        videoListAdapter = new VideosAdapter(context, recentlyPlayedVideos);
+        videoListAdapter = new VideosAdapter(context, recentlyPlayedVideos, "recentlyWatched");
         videoListAdapter.setOnItemEventsListener(this);
         recentlyPlayedListView.setAdapter(videoListAdapter);
 
         //disable swipe to refresh for this tab
         v.findViewById(R.id.swipe_to_refresh).setEnabled(false);
-
         return v;
     }
 
@@ -116,9 +117,12 @@ public class RecentlyWatchedFragment extends BaseFragment implements
         videoListAdapter.notifyDataSetChanged();
     }
 
+
     @Override
-    public void onShareClicked(String itemId) {
-        share(Config.SHARE_VIDEO_URL + itemId);
+    public void onRemoveClicked(YouTubeVideo video) {
+        recentlyPlayedVideos.remove(video);
+        videoListAdapter.notifyDataSetChanged();
+        Log.i("clicked", "true");
     }
 
     @Override

@@ -545,6 +545,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         }
     }
 
+
+
     /**
      * Class which provides adapter for fragment pager
      */

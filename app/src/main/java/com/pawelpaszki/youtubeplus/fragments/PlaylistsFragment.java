@@ -220,8 +220,8 @@ public class PlaylistsFragment extends BaseFragment implements
     }
 
     @Override
-    public void onShareClicked(String itemId) {
-        share(Config.SHARE_PLAYLIST_URL + itemId);
+    public void onRemoveClicked(YouTubeVideo video) {
+        // do nothing
     }
 
     @Override

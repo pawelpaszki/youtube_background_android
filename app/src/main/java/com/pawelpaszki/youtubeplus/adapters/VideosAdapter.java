@@ -17,6 +17,7 @@ package com.pawelpaszki.youtubeplus.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,13 +46,15 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
     private Context context;
     private final List<YouTubeVideo> list;
     private boolean[] itemChecked;
+    private String mFragment;
     private ItemEventsListener<YouTubeVideo> itemEventsListener;
 
-    public VideosAdapter(Context context, List<YouTubeVideo> list) {
+    public VideosAdapter(Context context, List<YouTubeVideo> list, String fragment) {
         super();
         this.list = list;
         this.context = context;
         this.itemChecked = new boolean[(int) Config.NUMBER_OF_VIDEOS_RETURNED];
+        this.mFragment = fragment;
     }
 
     @Override
@@ -69,28 +72,28 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
         } else {
             itemChecked[position] = false;
         }
-
         Picasso.with(context).load(video.getThumbnailURL()).into(holder.thumbnail);
         holder.title.setText(video.getTitle());
         holder.duration.setText(video.getDuration());
         holder.viewCount.setText(video.getViewCount());
         holder.favoriteCheckBox.setOnCheckedChangeListener(null);
         holder.favoriteCheckBox.setChecked(itemChecked[position]);
-
+        if(this.mFragment.equals("recentlyWatched")) {
+            holder.deleteButton.setVisibility(View.VISIBLE);
+            holder.deleteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (itemEventsListener != null) {
+                        itemEventsListener.onRemoveClicked(video);
+                    }
+                }
+            });
+        }
         holder.favoriteCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton btn, boolean isChecked) {
                 itemChecked[position] = isChecked;
                 if (itemEventsListener != null) {
                     itemEventsListener.onFavoriteClicked(video, isChecked);
-                }
-            }
-        });
-
-        holder.shareButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (itemEventsListener != null) {
-                    itemEventsListener.onShareClicked(video.getId());
                 }
             }
         });
@@ -117,7 +120,7 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
         TextView duration;
         TextView viewCount;
         CheckBox favoriteCheckBox;
-        ImageView shareButton;
+        ImageView deleteButton;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -126,7 +129,7 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
             duration = (TextView) itemView.findViewById(R.id.video_duration);
             viewCount = (TextView) itemView.findViewById(R.id.views_number);
             favoriteCheckBox = (CheckBox) itemView.findViewById(R.id.favoriteButton);
-            shareButton = (ImageView) itemView.findViewById(R.id.shareButton);
+            deleteButton = (ImageView) itemView.findViewById(R.id.deleteButton);
         }
     }
 

@@ -70,7 +70,7 @@ public class FavoritesFragment extends BaseFragment implements ItemEventsListene
         favoritesListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         favoritesListView.setLayoutManager(new LinearLayoutManager(context));
 
-        videoListAdapter = new VideosAdapter(context, favoriteVideos);
+        videoListAdapter = new VideosAdapter(context, favoriteVideos,"");
         videoListAdapter.setOnItemEventsListener(this);
         favoritesListView.setAdapter(videoListAdapter);
 
@@ -122,8 +122,8 @@ public class FavoritesFragment extends BaseFragment implements ItemEventsListene
     }
 
     @Override
-    public void onShareClicked(String itemId) {
-        share(Config.SHARE_VIDEO_URL + itemId);
+    public void onRemoveClicked(YouTubeVideo video) {
+        // do nothing
     }
 
     @Override

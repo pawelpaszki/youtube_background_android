@@ -644,6 +644,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                         mMediaPlayer.prepare();
                         mMediaPlayer.start();
+                        handleSeekBarChange();
                         sendBroadcast(videoItem.getDuration());
                     }
                 } catch (IOException io) {

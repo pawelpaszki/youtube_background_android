@@ -51,21 +51,8 @@ public class PlaylistsAdapter extends RecyclerView.Adapter<PlaylistsAdapter.View
         holder.videosNumber.setText(videosNumberText);
         String status = context.getString(R.string.status) + playlist.getStatus();
         holder.privacy.setText(status);
-
-        if (playlist.getStatus().equals("private")) {
-            holder.shareButton.setEnabled(false);
-        } else {
-            holder.shareButton.setVisibility(View.VISIBLE);
-        }
-
-        holder.shareButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (itemEventsListener != null) {
-                    itemEventsListener.onShareClicked(playlist.getId());
-                }
-            }
-        });
+        holder.shareButton.setVisibility(View.INVISIBLE);
+        holder.shareButton.setEnabled(false);
         holder.itemView.setTag(playlist);
     }
 

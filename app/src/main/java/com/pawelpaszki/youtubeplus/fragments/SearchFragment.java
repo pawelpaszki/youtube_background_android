@@ -82,7 +82,7 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
         videosFoundListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         videosFoundListView.setLayoutManager(new LinearLayoutManager(context));
         loadingProgressBar = (ProgressBar) v.findViewById(R.id.fragment_progress_bar);
-        videoListAdapter = new VideosAdapter(context, searchResultsList);
+        videoListAdapter = new VideosAdapter(context, searchResultsList,"");
         videoListAdapter.setOnItemEventsListener(this);
         videosFoundListView.setAdapter(videoListAdapter);
 
@@ -150,9 +150,10 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
         }).forceLoad();
     }
 
+
     @Override
-    public void onShareClicked(String itemId) {
-        share(Config.SHARE_VIDEO_URL + itemId);
+    public void onRemoveClicked(YouTubeVideo video) {
+        // do nothing
     }
 
     @Override
