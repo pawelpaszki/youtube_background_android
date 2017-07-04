@@ -73,6 +73,7 @@ import com.pawelpaszki.youtubeplus.model.ItemType;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 import com.pawelpaszki.youtubeplus.utils.Config;
 import com.pawelpaszki.youtubeplus.utils.NetworkConf;
+import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
 import com.pawelpaszki.youtubeplus.youtube.SuggestionsLoader;
 
 import java.util.ArrayList;
@@ -261,10 +262,11 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         });
 
         mLoopVideo = (ImageView) findViewById(R.id.loop);
+        setIsLoopingIcon(false);
         mLoopVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                setIsLoopingIcon(true);
             }
         });
         setControlsVisible(false);
@@ -280,6 +282,25 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         if(mPlaybackStartedReceiver != null) {
             unregisterReceiver(mPlaybackStartedReceiver);
         }
+    }
+
+    private void setIsLoopingIcon(boolean doUpdate) {
+        boolean isLooping = SharedPrefs.getIsLooping(MainActivity.this);
+        if(doUpdate) {
+            SharedPrefs.setIsLooping(!isLooping, this);
+            isLooping = !isLooping;
+        }
+        Resources res = getResources();
+
+        Drawable icon;
+        if(isLooping) {
+            icon = res.getDrawable(R.drawable.ic_loop_selected);
+        } else {
+            icon = res.getDrawable(R.drawable.ic_loop);
+        }
+        mLoopVideo.setImageDrawable(icon);
+
+
     }
 
     private void setControlsVisible(boolean visible) {

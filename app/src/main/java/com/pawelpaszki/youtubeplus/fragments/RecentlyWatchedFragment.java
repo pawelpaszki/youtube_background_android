@@ -121,6 +121,7 @@ public class RecentlyWatchedFragment extends BaseFragment implements
     @Override
     public void onRemoveClicked(YouTubeVideo video) {
         recentlyPlayedVideos.remove(video);
+        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).delete(video.getId());
         videoListAdapter.notifyDataSetChanged();
         Log.i("clicked", "true");
     }

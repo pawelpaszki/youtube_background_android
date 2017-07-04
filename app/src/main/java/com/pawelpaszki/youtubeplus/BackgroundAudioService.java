@@ -46,6 +46,7 @@ import com.facebook.network.connectionclass.DeviceBandwidthSampler;
 import com.pawelpaszki.youtubeplus.model.ItemType;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 import com.pawelpaszki.youtubeplus.utils.Config;
+import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
@@ -669,11 +670,11 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 
     @Override
     public void onCompletion(MediaPlayer _mediaPlayer) {
-        if (mediaType == ItemType.YOUTUBE_MEDIA_TYPE_PLAYLIST) {
+        if (mediaType != ItemType.YOUTUBE_MEDIA_TYPE_PLAYLIST && SharedPrefs.getIsLooping(getApplicationContext())) {
+            restartVideo();
+        } else {
             playNext();
             buildNotification(generateAction(android.R.drawable.ic_media_pause, "Pause", ACTION_PAUSE));
-        } else {
-            restartVideo();
         }
     }
 
