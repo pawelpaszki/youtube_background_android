@@ -57,11 +57,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.SeekBar;
-
-import com.flask.colorpicker.ColorPickerView;
-import com.flask.colorpicker.OnColorSelectedListener;
-import com.flask.colorpicker.builder.ColorPickerClickListener;
-import com.flask.colorpicker.builder.ColorPickerDialogBuilder;
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.fragments.FavoritesFragment;
 import com.pawelpaszki.youtubeplus.fragments.PlaylistsFragment;
@@ -105,9 +100,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     static final int REQUEST_ACCOUNT_PICKER = 1000;
     static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
 
-    private int initialColor = 0xffff0040;
-    private int initialColors[] = new int[2];
-
     private SeekBar mDurationSeekbar;
     private ImageView mPreviousVideo;
     private ImageView mPlay;
@@ -141,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private BroadcastReceiver mPlaybackStartedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.i("extras", intent.getStringExtra("duration"));
+            //Log.i("extras", intent.getStringExtra("duration"));
             setDuration(intent.getStringExtra("duration"));
         }
     };
@@ -238,12 +230,14 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 if(mHasPlaybackStarted) {
                     if(mIsPlaying) {
                         mIsPlaying = false;
+                        mDurationSeekbar.setEnabled(false);
                         sendBroadcast("pause");
                         mPausedAt = mDurationSeekbar.getProgress();
                         setPlayIconAndDisableControls(false);
                     } else {
                         sendBroadcast("play");
                         setPauseIcon();
+                        mDurationSeekbar.setEnabled(true);
                         mIsPlaying = true;
                     }
                 }
@@ -271,7 +265,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         });
         setControlsVisible(false);
         setupTabIcons();
-        loadColor();
 
         requestPermissions();
     }
@@ -742,87 +735,9 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         } else if (id == R.id.action_search) {
             MenuItemCompat.expandActionView(item);
             return true;
-        } else if (id == R.id.action_color_picker) {
-            /* Show color picker dialog */
-            ColorPickerDialogBuilder
-                    .with(this)
-                    .setTitle(getString(R.string.choose_colors))
-                    .initialColor(initialColor)
-                    .wheelType(ColorPickerView.WHEEL_TYPE.FLOWER)
-                    .setPickerCount(2)
-                    .initialColors(initialColors)
-                    .density(12)
-                    .setOnColorSelectedListener(new OnColorSelectedListener() {
-                        @Override
-                        public void onColorSelected(int selectedColor) {
-                        }
-                    })
-                    .setPositiveButton(getString(R.string.ok), new ColorPickerClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int selectedColor, Integer[] allColors) {
-                            //changeBackgroundColor(selectedColor);
-                            if (allColors != null) {
-                                setColors(allColors[0], allColors[1]);
-                            }
-                        }
-                    })
-                    .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    })
-                    .showColorEdit(true)
-                    .build()
-                    .show();
         }
 
         return super.onOptionsItemSelected(item);
-    }
 
-    /**
-     * Loads app theme color saved in preferences
-     */
-    private void loadColor() {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        int backgroundColor = sp.getInt(PREF_BACKGROUND_COLOR, -1);
-        int textColor = sp.getInt(PREF_TEXT_COLOR, -1);
-
-        if (backgroundColor != -1 && textColor != -1) {
-            setColors(backgroundColor, textColor);
-        } else {
-            initialColors = new int[]{
-                    ContextCompat.getColor(this, R.color.colorPrimary),
-                    ContextCompat.getColor(this, R.color.textColorPrimary)};
-        }
-    }
-
-    /**
-     * Save app theme color in preferences
-     */
-    private void setColors(int backgroundColor, int textColor) {
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setBackgroundColor(backgroundColor);
-        toolbar.setTitleTextColor(textColor);
-        TabLayout tabs = (TabLayout) findViewById(R.id.tabs);
-        tabs.setBackgroundColor(backgroundColor);
-        tabs.setTabTextColors(textColor, textColor);
-        setStatusBarColor(backgroundColor);
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        sp.edit().putInt(PREF_BACKGROUND_COLOR, backgroundColor).apply();
-        sp.edit().putInt(PREF_TEXT_COLOR, textColor).apply();
-
-        initialColors[0] = backgroundColor;
-        initialColors[1] = textColor;
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public void setStatusBarColor(int color) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            Window window = getWindow();
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(color);
-        }
     }
 }

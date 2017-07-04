@@ -233,9 +233,11 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         String action = intent.getAction();
         if (action.equalsIgnoreCase(ACTION_PLAY)) {
             handleMedia(intent);
+            handleSeekBarChange();
             mController.getTransportControls().play();
         } else if (action.equalsIgnoreCase(ACTION_PAUSE)) {
             mController.getTransportControls().pause();
+            removeAllHandlers();
         } else if (action.equalsIgnoreCase(ACTION_PREVIOUS)) {
             mController.getTransportControls().skipToPrevious();
         } else if (action.equalsIgnoreCase(ACTION_NEXT)) {
@@ -260,7 +262,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         mSeekBarProgressHandler = new Handler();
         mSeekBarProgressHandler.postDelayed(new Runnable(){
             public void run(){
-                Log.i("seekbar handle", "active");
+                Log.i("seekba handle", "active");
                 if((mSetSeekToPosition != mMediaPlayer.getCurrentPosition() * 1000 && mSeekToSet) || !mSeekToSet) {
                     if(mMediaPlayer.isPlaying()) {
                         if(mSetSeekToPosition != mMediaPlayer.getCurrentPosition() * 1000) {
@@ -277,6 +279,13 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 
             }
         }, 1000);
+    }
+
+    private void removeAllHandlers() {
+        if(mSeekBarProgressHandler != null) {
+            mSeekBarProgressHandler.removeCallbacksAndMessages(null);
+            mSeekBarProgressHandler = null;
+        }
     }
 
     /**
@@ -376,7 +385,6 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                         public void onStop() {
                             super.onStop();
                             stopPlayer();
-                            //remove notification and stop service
                             NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
                             notificationManager.cancel(1);
                             Intent intent = new Intent(getApplicationContext(), BackgroundAudioService.class);
@@ -414,7 +422,8 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         PendingIntent clickPendingIntent = PendingIntent.getActivity(this, 0, clickIntent, 0);
 
         builder = new NotificationCompat.Builder(this);
-        builder.setSmallIcon(getApplicationContext().getResources().getIdentifier("ic_launcher", "mipmap", getApplicationContext().getPackageName()));
+        builder.setSmallIcon(android.R.drawable.ic_media_play);
+        //builder.setColor(getApplicationContext().getResources().getColor(R.color.colorPrimary));
         builder.setContentTitle(videoItem.getTitle());
         builder.setContentInfo(videoItem.getDuration());
         builder.setShowWhen(false);
@@ -670,7 +679,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 
     @Override
     public void onCompletion(MediaPlayer _mediaPlayer) {
-        if (mediaType != ItemType.YOUTUBE_MEDIA_TYPE_PLAYLIST && SharedPrefs.getIsLooping(getApplicationContext())) {
+        if (mediaType != ItemType.YOUTUBE_MEDIA_TYPE_PLAYLIST || SharedPrefs.getIsLooping(getApplicationContext())) {
             restartVideo();
         } else {
             playNext();
