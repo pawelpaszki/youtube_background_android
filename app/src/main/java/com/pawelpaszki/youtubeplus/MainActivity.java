@@ -292,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             icon = res.getDrawable(R.drawable.ic_loop);
         }
         mLoopVideo.setImageDrawable(icon);
-
+        //Log.i("is looping", String.valueOf(SharedPrefs.getIsLooping(MainActivity.this)));
 
     }
 

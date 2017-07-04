@@ -239,14 +239,21 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
             mController.getTransportControls().pause();
             removeAllHandlers();
         } else if (action.equalsIgnoreCase(ACTION_PREVIOUS)) {
-            mController.getTransportControls().skipToPrevious();
+            if(SharedPrefs.getIsLooping(getApplicationContext())) {
+                seekVideo(0);
+                mSetSeekToPosition = 0;
+                handleSeekBarChange();
+            } else {
+                mController.getTransportControls().skipToPrevious();
+            }
+
         } else if (action.equalsIgnoreCase(ACTION_NEXT)) {
             mController.getTransportControls().skipToNext();
         } else if (action.equalsIgnoreCase(ACTION_STOP)) {
             mController.getTransportControls().stop();
         } else if (action.equalsIgnoreCase(ACTION_SEEK)) {
             int value = intent.getIntExtra("seekTo", 0);
-            Log.i("seek value", String.valueOf(value));
+            //Log.i("seek value", String.valueOf(value));
             seekVideo(value * 1000);
 
             mSetSeekToPosition = value * 1000;
@@ -262,7 +269,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         mSeekBarProgressHandler = new Handler();
         mSeekBarProgressHandler.postDelayed(new Runnable(){
             public void run(){
-                Log.i("seekba handle", "active");
+                //Log.i("seekbar handle", "active");
                 if((mSetSeekToPosition != mMediaPlayer.getCurrentPosition() * 1000 && mSeekToSet) || !mSeekToSet) {
                     if(mMediaPlayer.isPlaying()) {
                         if(mSetSeekToPosition != mMediaPlayer.getCurrentPosition() * 1000) {
@@ -271,7 +278,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                             new_intent.putExtra("progress", mMediaPlayer.getCurrentPosition() / 1000);
                             sendBroadcast(new_intent);
                             mSeekToSet = false;
-                            Log.i("seek value", String.valueOf(mMediaPlayer.getCurrentPosition() / 1000));
+                            //Log.i("seek value", String.valueOf(mMediaPlayer.getCurrentPosition() / 1000));
                         }
                     }
                 }
@@ -279,6 +286,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 
             }
         }, 1000);
+
     }
 
     private void removeAllHandlers() {
