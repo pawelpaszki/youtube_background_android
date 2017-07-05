@@ -7,5 +7,6 @@ package com.pawelpaszki.youtubeplus.model;
 public enum ItemType {
     YOUTUBE_MEDIA_NONE,
     YOUTUBE_MEDIA_TYPE_VIDEO,
-    YOUTUBE_MEDIA_TYPE_PLAYLIST
+    YOUTUBE_MEDIA_TYPE_PLAYLIST,
+    MEDIA_LOCAL
 }

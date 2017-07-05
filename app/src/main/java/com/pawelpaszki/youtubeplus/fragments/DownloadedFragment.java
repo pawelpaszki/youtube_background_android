@@ -1,30 +1,20 @@
-/*
- * Copyright (C) 2016 SMedic
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.pawelpaszki.youtubeplus.fragments;
 
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
+import com.pawelpaszki.youtubeplus.BackgroundAudioService;
 import com.pawelpaszki.youtubeplus.MainActivity;
 import com.pawelpaszki.youtubeplus.R;
 import com.pawelpaszki.youtubeplus.adapters.VideosAdapter;
@@ -32,38 +22,40 @@ import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.interfaces.ItemEventsListener;
 import com.pawelpaszki.youtubeplus.interfaces.OnFavoritesSelected;
 import com.pawelpaszki.youtubeplus.interfaces.OnItemSelected;
+import com.pawelpaszki.youtubeplus.model.ItemType;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 import com.pawelpaszki.youtubeplus.utils.Config;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
- * Class that handles list of the recently watched YouTube
- * Created by smedic on 7.3.16..
+ * Created by PawelPaszki on 04/07/2017.
  */
-public class RecentlyWatchedFragment extends BaseFragment implements
-        ItemEventsListener<YouTubeVideo> {
 
-    private ArrayList<YouTubeVideo> recentlyPlayedVideos;
+public class DownloadedFragment extends BaseFragment implements ItemEventsListener<YouTubeVideo> {
 
-    private RecyclerView recentlyPlayedListView;
+    private static final String ACTION_LOCAL_PLAYBACK_STARTED = "LocalPlaybackStarted";
+    private ArrayList<YouTubeVideo> downloadedVideos;
+
+    private RecyclerView downloadedListView;
     private VideosAdapter videoListAdapter;
     private OnItemSelected itemSelected;
     private OnFavoritesSelected onFavoritesSelected;
     private Context context;
 
-    public RecentlyWatchedFragment() {
+    public DownloadedFragment() {
         // Required empty public constructor
     }
 
-    public static RecentlyWatchedFragment newInstance() {
-        return new RecentlyWatchedFragment();
+    public static DownloadedFragment newInstance() {
+        return new DownloadedFragment();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        recentlyPlayedVideos = new ArrayList<>();
+        downloadedVideos = new ArrayList<>();
     }
 
     @Override
@@ -71,11 +63,11 @@ public class RecentlyWatchedFragment extends BaseFragment implements
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_list, container, false);
-        recentlyPlayedListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
-        recentlyPlayedListView.setLayoutManager(new LinearLayoutManager(context));
-        videoListAdapter = new VideosAdapter(context, recentlyPlayedVideos, "recentlyWatched");
+        downloadedListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
+        downloadedListView.setLayoutManager(new LinearLayoutManager(context));
+        videoListAdapter = new VideosAdapter(context, downloadedVideos, "downloadedFragment");
         videoListAdapter.setOnItemEventsListener(this);
-        recentlyPlayedListView.setAdapter(videoListAdapter);
+        downloadedListView.setAdapter(videoListAdapter);
 
         //disable swipe to refresh for this tab
         v.findViewById(R.id.swipe_to_refresh).setEnabled(false);
@@ -85,8 +77,8 @@ public class RecentlyWatchedFragment extends BaseFragment implements
     @Override
     public void onResume() {
         super.onResume();
-        recentlyPlayedVideos.clear();
-        recentlyPlayedVideos.addAll(YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).readAll());
+        downloadedVideos.clear();
+        downloadedVideos.addAll(YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).readAll());
         videoListAdapter.notifyDataSetChanged();
     }
 
@@ -108,21 +100,22 @@ public class RecentlyWatchedFragment extends BaseFragment implements
         onFavoritesSelected = null;
     }
 
-    /**
-     * Clears recently played list items
-     */
-    public void clearRecentlyPlayedList() {
-        recentlyPlayedVideos.clear();
-        videoListAdapter.notifyDataSetChanged();
-    }
-
-
     @Override
     public void onAdditionalClicked(YouTubeVideo video) {
-        recentlyPlayedVideos.remove(video);
-        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).delete(video.getId());
-        videoListAdapter.notifyDataSetChanged();
-        Log.i("clicked", "true");
+        downloadedVideos.remove(video);
+
+        String filename = video.getId();
+        File[] files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
+        for(int i = 0; i < files.length; i++) {
+            if(files[i].getAbsolutePath().toString().contains(filename)) {
+                String fileToRemove = files[i].getAbsolutePath();
+                File file = new File(fileToRemove);
+                boolean ignored = file.delete();
+                YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).delete(video.getId());
+                videoListAdapter.notifyDataSetChanged();
+                break;
+            }
+        }
     }
 
     @Override
@@ -132,6 +125,13 @@ public class RecentlyWatchedFragment extends BaseFragment implements
 
     @Override
     public void onItemClick(YouTubeVideo video) {
-        itemSelected.onPlaylistSelected(recentlyPlayedVideos, recentlyPlayedVideos.indexOf(video));
+        Log.i("item clicked", "downloaded");
+        Intent serviceIntent = new Intent(getActivity(), BackgroundAudioService.class);
+        serviceIntent.setAction(BackgroundAudioService.ACTION_PLAY);
+        serviceIntent.putExtra(Config.YOUTUBE_TYPE, ItemType.MEDIA_LOCAL);
+        serviceIntent.putExtra(Config.YOUTUBE_TYPE_VIDEO, video);
+        serviceIntent.putExtra(Config.LOCAL_MEDIA_FILEAME, video.getId());
+        serviceIntent.putExtra(Config.YOUTUBE_TYPE_PLAYLIST, (ArrayList) downloadedVideos);
+        getActivity().startService(serviceIntent);
     }
 }

@@ -23,9 +23,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.graphics.SurfaceTexture;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -38,7 +41,10 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.Surface;
+import android.widget.MediaController;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import com.facebook.network.connectionclass.ConnectionClassManager;
 import com.facebook.network.connectionclass.ConnectionQuality;
@@ -50,6 +56,8 @@ import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -75,6 +83,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     public static final String ACTION_SEEKBAR_UPDATE = "action_update";
 
     private Handler mSeekBarProgressHandler;
+    private boolean mPreviousPressed;
 
     private MediaPlayer mMediaPlayer;
     private MediaSessionCompat mSession;
@@ -141,6 +150,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.i("on create", "background audio service");
         videoItem = new YouTubeVideo();
         mMediaPlayer = new MediaPlayer();
         mMediaPlayer.setOnCompletionListener(this);
@@ -219,7 +229,13 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         if (mSeekToReceiver != null) {
             unregisterReceiver(mSeekToReceiver);
         }
-
+        if(mMediaPlayer!=null) {
+            if(mMediaPlayer.isPlaying())
+                mMediaPlayer.stop();
+            mMediaPlayer.reset();
+            mMediaPlayer.release();
+            mMediaPlayer=null;
+        }
     }
 
     /**
@@ -231,6 +247,8 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         if (intent == null || intent.getAction() == null)
             return;
         String action = intent.getAction();
+        Log.i("action intent rec", "true");
+        Log.i("media type", String.valueOf(mediaType));
         if (action.equalsIgnoreCase(ACTION_PLAY)) {
             handleMedia(intent);
             handleSeekBarChange();
@@ -239,16 +257,23 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
             mController.getTransportControls().pause();
             removeAllHandlers();
         } else if (action.equalsIgnoreCase(ACTION_PREVIOUS)) {
-            if(SharedPrefs.getIsLooping(getApplicationContext())) {
-                seekVideo(0);
-                mSetSeekToPosition = 0;
-                handleSeekBarChange();
+            if(mediaType == ItemType.MEDIA_LOCAL) {
+                playPrevious();
             } else {
-                mController.getTransportControls().skipToPrevious();
+                if(SharedPrefs.getIsLooping(getApplicationContext())) {
+                    seekVideo(0);
+                    mSetSeekToPosition = 0;
+                    handleSeekBarChange();
+                } else {
+                    mController.getTransportControls().skipToPrevious();
+                }
             }
-
         } else if (action.equalsIgnoreCase(ACTION_NEXT)) {
-            mController.getTransportControls().skipToNext();
+            if(mediaType == ItemType.MEDIA_LOCAL) {
+                playNext();
+            } else {
+                mController.getTransportControls().skipToNext();
+            }
         } else if (action.equalsIgnoreCase(ACTION_STOP)) {
             mController.getTransportControls().stop();
         } else if (action.equalsIgnoreCase(ACTION_SEEK)) {
@@ -270,20 +295,26 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         mSeekBarProgressHandler.postDelayed(new Runnable(){
             public void run(){
                 //Log.i("seekbar handle", "active");
-                if((mSetSeekToPosition != mMediaPlayer.getCurrentPosition() * 1000 && mSeekToSet) || !mSeekToSet) {
-                    if(mMediaPlayer.isPlaying()) {
-                        if(mSetSeekToPosition != mMediaPlayer.getCurrentPosition() * 1000) {
-                            Intent new_intent = new Intent();
-                            new_intent.setAction(ACTION_SEEKBAR_UPDATE);
-                            new_intent.putExtra("progress", mMediaPlayer.getCurrentPosition() / 1000);
-                            sendBroadcast(new_intent);
-                            mSeekToSet = false;
-                            //Log.i("seek value", String.valueOf(mMediaPlayer.getCurrentPosition() / 1000));
+                if(mMediaPlayer != null) {
+                    if((mSetSeekToPosition != mMediaPlayer.getCurrentPosition() * 1000 && mSeekToSet) || !mSeekToSet) {
+                        if(mMediaPlayer.isPlaying()) {
+                            if(mSetSeekToPosition != mMediaPlayer.getCurrentPosition() * 1000) {
+                                Intent new_intent = new Intent();
+                                new_intent.setAction(ACTION_SEEKBAR_UPDATE);
+                                new_intent.putExtra("progress", mMediaPlayer.getCurrentPosition() / 1000);
+                                sendBroadcast(new_intent);
+                                mSeekToSet = false;
+                                //Log.i("seek value", String.valueOf(mMediaPlayer.getCurrentPosition() / 1000));
+                            }
                         }
                     }
+                    mSeekBarProgressHandler.postDelayed(this, 1000);
+                } else {
+                    if(mSeekBarProgressHandler != null) {
+                        mSeekBarProgressHandler.removeCallbacksAndMessages(null);
+                        mSeekBarProgressHandler = null;
+                    }
                 }
-                mSeekBarProgressHandler.postDelayed(this, 1000);
-
             }
         }, 1000);
 
@@ -324,6 +355,13 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                 videoItem = youTubeVideos.get(startPosition);
                 currentSongIndex = startPosition;
                 playVideo();
+                break;
+            case MEDIA_LOCAL:
+                mediaType = ItemType.MEDIA_LOCAL;
+                String filename = (String) intent.getSerializableExtra(Config.LOCAL_MEDIA_FILEAME);
+                videoItem = (YouTubeVideo) intent.getSerializableExtra(Config.YOUTUBE_TYPE_VIDEO);
+                youTubeVideos = (ArrayList<YouTubeVideo>) intent.getSerializableExtra(Config.YOUTUBE_TYPE_PLAYLIST);
+                playLocalMedia(filename);
                 break;
             default:
                 Log.d(TAG, "Unknown command");
@@ -515,6 +553,17 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
             return;
         }
 
+        if (mediaType == ItemType.MEDIA_LOCAL) {
+            Log.i("media local", "next is local");
+            Log.i("video item", videoItem.getId() + videoItem.getTitle());
+            Log.i("videos", youTubeVideos.toString());
+            int index = getNextLocalMediaIndex(videoItem.getId());
+            startMediaPlayerWithLocalMedia(youTubeVideos.get(index).getId());
+            videoItem = youTubeVideos.get(index);
+            mPreviousPressed = false;
+            return;
+        }
+
         if (youTubeVideos.size() > currentSongIndex + 1) {
             currentSongIndex++;
         } else { //play 1st song
@@ -535,6 +584,16 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
             return;
         }
 
+        if (mediaType == ItemType.MEDIA_LOCAL) {
+            Log.i("media local", "previous is local");
+            Log.i("video item", videoItem.getId() + videoItem.getTitle());
+            int index = getPreviousLocalMediaIndex(videoItem.getId());
+            startMediaPlayerWithLocalMedia(youTubeVideos.get(index).getId());
+            videoItem = youTubeVideos.get(index);
+            mPreviousPressed = true;
+            return;
+        }
+
         if (currentSongIndex - 1 >= 0) {
             currentSongIndex--;
         } else { //play last song
@@ -542,6 +601,114 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         }
         videoItem = youTubeVideos.get(youTubeVideos.size() - 1);
         playVideo();
+    }
+
+    /**
+     * play local media
+     */
+    private void playLocalMedia(String filename){
+
+        startMediaPlayerWithLocalMedia(filename);
+    }
+
+    private void startMediaPlayerWithLocalMedia(String filename){
+        Log.i("got here", "start local");
+        try {
+            if (mMediaPlayer != null) {
+                stopPlayer();
+
+                File[] files =Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
+                int index = -1;
+                for(int i = 0; i < files.length; i++) {
+                    if(files[i].getAbsolutePath().toString().contains(filename)) {
+                        Log.i("file in download", files[i].getAbsolutePath());
+                        index = i;
+                        break;
+                    }
+                }
+                if(index != -1) {
+                    mPreviousPressed = false;
+                    mMediaPlayer = MediaPlayer.create(getApplicationContext(), Uri.parse(files[index].getAbsolutePath()));
+                    mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                    Log.i("duration", String.valueOf(mMediaPlayer.getDuration()));
+                    mMediaPlayer.setOnCompletionListener(this);
+
+                    mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                        @Override
+                        public void onPrepared(MediaPlayer mp) {
+                            mMediaPlayer.start();
+                            handleSeekBarChange();
+                            sendBroadcast(videoItem.getDuration());
+                            Log.i("media started", "true");
+                            Log.i("is playing", String.valueOf(mMediaPlayer.isPlaying()));
+                            Log.i("videos",youTubeVideos.toString());
+                        }
+                    });
+
+
+                } else {
+                    if(anyLocalMediaExists()) {
+                        int newIndex;
+                        if(mPreviousPressed) {
+                            newIndex = getPreviousLocalMediaIndex(filename);
+                        } else {
+                            newIndex = getNextLocalMediaIndex(filename);
+                        }
+
+                        videoItem = youTubeVideos.get(newIndex);
+                        startMediaPlayerWithLocalMedia(youTubeVideos.get(newIndex).getId());
+                    } else {
+                        //TODO clear downloaded
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean anyLocalMediaExists() {
+        File[] files =Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
+        for(int i = 0; i < files.length; i++) {
+            for(int j = 0; j < youTubeVideos.size(); j++) {
+                if(files[i].getAbsolutePath().toString().contains(youTubeVideos.get(j).getId())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private int getNextLocalMediaIndex(String filename) {
+        int index = 0;
+        for(int i = 0; i < youTubeVideos.size(); i++) {
+            if(youTubeVideos.get(i).getId().equals(filename)) {
+                index = i;
+                break;
+            }
+        }
+        if(index + 1 == youTubeVideos.size()) {
+            index = 0;
+        } else {
+            index++;
+        }
+        return index;
+    }
+
+    private int getPreviousLocalMediaIndex(String filename) {
+        int index = 0;
+        for(int i = 0; i < youTubeVideos.size(); i++) {
+            if(youTubeVideos.get(i).getId().equals(filename)) {
+                index = i;
+                break;
+            }
+        }
+        if(index == 0) {
+            index = youTubeVideos.size()-1;
+        } else {
+            index--;
+        }
+        return index;
     }
 
     /**
@@ -687,12 +854,13 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 
     @Override
     public void onCompletion(MediaPlayer _mediaPlayer) {
-        if (mediaType != ItemType.YOUTUBE_MEDIA_TYPE_PLAYLIST || SharedPrefs.getIsLooping(getApplicationContext())) {
-            restartVideo();
-        } else {
+        if (mediaType == ItemType.YOUTUBE_MEDIA_TYPE_PLAYLIST || !SharedPrefs.getIsLooping(getApplicationContext())) {
             playNext();
             buildNotification(generateAction(android.R.drawable.ic_media_pause, "Pause", ACTION_PAUSE));
+        } else {
+            restartVideo();
         }
+
     }
 
     @Override

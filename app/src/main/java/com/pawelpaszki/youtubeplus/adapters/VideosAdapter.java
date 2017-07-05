@@ -16,6 +16,8 @@
 package com.pawelpaszki.youtubeplus.adapters;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -78,13 +80,28 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
         holder.viewCount.setText(video.getViewCount());
         holder.favoriteCheckBox.setOnCheckedChangeListener(null);
         holder.favoriteCheckBox.setChecked(itemChecked[position]);
-        if(this.mFragment.equals("recentlyWatched")) {
-            holder.deleteButton.setVisibility(View.VISIBLE);
-            holder.deleteButton.setOnClickListener(new View.OnClickListener() {
+        if(this.mFragment.equals("recentlyWatched") || this.mFragment.equals("downloadedFragment")) {
+            holder.additionalActionButton.setVisibility(View.VISIBLE);
+            holder.additionalActionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (itemEventsListener != null) {
-                        itemEventsListener.onRemoveClicked(video);
+                        itemEventsListener.onAdditionalClicked(video);
+                    }
+                }
+            });
+        } else if (this.mFragment.equals("favouritesFragment")) {
+            holder.additionalActionButton.setVisibility(View.VISIBLE);
+
+            Resources res = context.getResources();
+
+            Drawable icon = res.getDrawable(R.drawable.download);
+            ((ImageView) holder.additionalActionButton).setBackground(icon);
+            holder.additionalActionButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (itemEventsListener != null) {
+                        itemEventsListener.onAdditionalClicked(video);
                     }
                 }
             });
@@ -120,7 +137,7 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
         TextView duration;
         TextView viewCount;
         CheckBox favoriteCheckBox;
-        ImageView deleteButton;
+        ImageView additionalActionButton;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -129,7 +146,7 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
             duration = (TextView) itemView.findViewById(R.id.video_duration);
             viewCount = (TextView) itemView.findViewById(R.id.views_number);
             favoriteCheckBox = (CheckBox) itemView.findViewById(R.id.favoriteButton);
-            deleteButton = (ImageView) itemView.findViewById(R.id.deleteButton);
+            additionalActionButton = (ImageView) itemView.findViewById(R.id.additionalActionButton);
         }
     }
 

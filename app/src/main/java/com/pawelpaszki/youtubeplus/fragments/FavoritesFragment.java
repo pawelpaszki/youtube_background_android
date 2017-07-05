@@ -22,15 +22,19 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.pawelpaszki.youtubeplus.MainActivity;
 import com.pawelpaszki.youtubeplus.R;
+import com.pawelpaszki.youtubeplus.YTApplication;
 import com.pawelpaszki.youtubeplus.adapters.VideosAdapter;
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.interfaces.ItemEventsListener;
 import com.pawelpaszki.youtubeplus.interfaces.OnItemSelected;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 import com.pawelpaszki.youtubeplus.utils.Config;
+import com.pawelpaszki.youtubeplus.utils.MediaStorageHandler;
+import com.pawelpaszki.youtubeplus.utils.NetworkConf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +44,6 @@ import java.util.List;
  */
 public class FavoritesFragment extends BaseFragment implements ItemEventsListener<YouTubeVideo> {
 
-    private static final String TAG = "SMEDIC Favorites";
     private List<YouTubeVideo> favoriteVideos;
 
     private RecyclerView favoritesListView;
@@ -70,7 +73,7 @@ public class FavoritesFragment extends BaseFragment implements ItemEventsListene
         favoritesListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         favoritesListView.setLayoutManager(new LinearLayoutManager(context));
 
-        videoListAdapter = new VideosAdapter(context, favoriteVideos,"");
+        videoListAdapter = new VideosAdapter(context, favoriteVideos,"favouritesFragment");
         videoListAdapter.setOnItemEventsListener(this);
         favoritesListView.setAdapter(videoListAdapter);
 
@@ -122,8 +125,17 @@ public class FavoritesFragment extends BaseFragment implements ItemEventsListene
     }
 
     @Override
-    public void onRemoveClicked(YouTubeVideo video) {
-        // do nothing
+    public void onAdditionalClicked(YouTubeVideo video) {
+        boolean notExists = YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).create(video);
+        //TODO check if exists already on sd card
+        if(notExists) {
+            try {
+                MediaStorageHandler.downloadVideo(video, context);
+            } catch (Exception e) {
+                Toast.makeText(YTApplication.getAppContext(), "Video has not been downloaded",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     @Override

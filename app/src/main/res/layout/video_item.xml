@@ -72,7 +72,7 @@
                 android:button="@null" />
 
             <ImageView
-                android:id="@+id/deleteButton"
+                android:id="@+id/additionalActionButton"
                 android:layout_width="26dp"
                 android:layout_height="26dp"
                 android:layout_alignParentBottom="true"

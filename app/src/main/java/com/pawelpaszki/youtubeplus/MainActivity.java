@@ -58,6 +58,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
+import com.pawelpaszki.youtubeplus.fragments.DownloadedFragment;
 import com.pawelpaszki.youtubeplus.fragments.FavoritesFragment;
 import com.pawelpaszki.youtubeplus.fragments.PlaylistsFragment;
 import com.pawelpaszki.youtubeplus.fragments.RecentlyWatchedFragment;
@@ -93,8 +94,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private ViewPager viewPager;
 
     private static final int PERMISSIONS = 1;
-    private static final String PREF_BACKGROUND_COLOR = "BACKGROUND_COLOR";
-    private static final String PREF_TEXT_COLOR = "TEXT_COLOR";
     public static final String PREF_ACCOUNT_NAME = "accountName";
 
     static final int REQUEST_ACCOUNT_PICKER = 1000;
@@ -114,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private SearchFragment searchFragment;
     private RecentlyWatchedFragment recentlyPlayedFragment;
     private FavoritesFragment favoritesFragment;
+    private DownloadedFragment downloadedFragment;
 
     private static final String ACTION_PLAYBACK_STARTED = "playbackStarted";
     public static final String ACTION_PLAY = "action_play";
@@ -124,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     public static final String ACTION_SEEKBAR_UPDATE = "action_update";
 
     private int[] tabIcons = {
+            R.drawable.ic_downloaded,
             R.drawable.ic_star,
             R.drawable.ic_recently_wached,
             R.drawable.ic_search,
@@ -471,6 +472,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         tabLayout.getTabAt(1).setIcon(tabIcons[1]);
         tabLayout.getTabAt(2).setIcon(tabIcons[2]);
         tabLayout.getTabAt(3).setIcon(tabIcons[3]);
+        tabLayout.getTabAt(4).setIcon(tabIcons[4]);
     }
 
     /**
@@ -485,8 +487,10 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         searchFragment = SearchFragment.newInstance();
         recentlyPlayedFragment = RecentlyWatchedFragment.newInstance();
         favoritesFragment = FavoritesFragment.newInstance();
+        downloadedFragment = DownloadedFragment.newInstance();
         PlaylistsFragment playlistsFragment = PlaylistsFragment.newInstance();
 
+        adapter.addFragment(downloadedFragment, null);
         adapter.addFragment(favoritesFragment, null);
         adapter.addFragment(recentlyPlayedFragment, null);
         adapter.addFragment(searchFragment, null);

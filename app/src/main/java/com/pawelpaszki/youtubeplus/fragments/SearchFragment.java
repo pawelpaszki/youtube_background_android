@@ -152,7 +152,7 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
 
 
     @Override
-    public void onRemoveClicked(YouTubeVideo video) {
+    public void onAdditionalClicked(YouTubeVideo video) {
         // do nothing
     }
 

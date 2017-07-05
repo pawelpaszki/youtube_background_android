@@ -13,6 +13,7 @@ public final class Config {
     public static final String YOUTUBE_BASE_URL = "http://youtube.com/watch?v=";
     public static final String YOUTUBE_TYPE = "YT_MEDIA_TYPE";
     public static final String YOUTUBE_TYPE_VIDEO = "YT_VIDEO";
+    public static final String LOCAL_MEDIA_FILEAME = "FILENAME";
     public static final String YOUTUBE_TYPE_PLAYLIST= "YT_PLAYLIST";
     public static final String YOUTUBE_TYPE_PLAYLIST_VIDEO_POS = "YT_PLAYLIST_VIDEO_POS";
 

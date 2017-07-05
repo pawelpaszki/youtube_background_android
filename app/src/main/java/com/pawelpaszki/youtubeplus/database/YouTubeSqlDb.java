@@ -39,15 +39,17 @@ public class YouTubeSqlDb {
 
     public static final String RECENTLY_WATCHED_TABLE_NAME = "recently_watched_videos";
     public static final String FAVORITES_TABLE_NAME = "favorites_videos";
+    public static final String DOWNLOADED_TABLE_NAME = "downloaded_videos";
     private static final String TAG = "SMEDIC TABLE SQL";
 
-    public enum VIDEOS_TYPE {FAVORITE, RECENTLY_WATCHED}
+    public enum VIDEOS_TYPE {FAVORITE, RECENTLY_WATCHED, DOWNLOADED}
 
     private YouTubeDbHelper dbHelper;
 
     private Playlists playlists;
     private Videos recentlyWatchedVideos;
     private Videos favoriteVideos;
+    private Videos downloadedVideos;
 
     private static YouTubeSqlDb ourInstance = new YouTubeSqlDb();
 
@@ -65,6 +67,7 @@ public class YouTubeSqlDb {
         playlists = new Playlists();
         recentlyWatchedVideos = new Videos(RECENTLY_WATCHED_TABLE_NAME);
         favoriteVideos = new Videos(FAVORITES_TABLE_NAME);
+        downloadedVideos = new Videos(DOWNLOADED_TABLE_NAME);
     }
 
     public Videos videos(VIDEOS_TYPE type) {
@@ -72,6 +75,8 @@ public class YouTubeSqlDb {
             return favoriteVideos;
         } else if (type == VIDEOS_TYPE.RECENTLY_WATCHED) {
             return recentlyWatchedVideos;
+        } else if (type == VIDEOS_TYPE.DOWNLOADED) {
+            return downloadedVideos;
         }
         Log.e(TAG, "Error. Unknown video type!");
         return null;
@@ -88,6 +93,7 @@ public class YouTubeSqlDb {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
+            db.execSQL(YouTubeVideoEntry.DATABASE_DOWNLOADED_TABLE_CREATE);
             db.execSQL(YouTubeVideoEntry.DATABASE_FAVORITES_TABLE_CREATE);
             db.execSQL(YouTubeVideoEntry.DATABASE_RECENTLY_WATCHED_TABLE_CREATE);
             db.execSQL(YouTubePlaylistEntry.DATABASE_TABLE_CREATE);
@@ -97,6 +103,7 @@ public class YouTubeSqlDb {
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             db.execSQL(YouTubeVideoEntry.DROP_QUERY_RECENTLY_WATCHED);
             db.execSQL(YouTubeVideoEntry.DROP_QUERY_FAVORITES);
+            db.execSQL(YouTubeVideoEntry.DROP_QUERY_DOWNLOADED);
             db.execSQL(YouTubePlaylistEntry.DROP_QUERY);
             onCreate(db);
         }
@@ -311,8 +318,18 @@ public class YouTubeSqlDb {
                         COLUMN_THUMBNAIL_URL + " TEXT," +
                         COLUMN_VIEWS_NUMBER + " TEXT)";
 
+        private static final String DATABASE_DOWNLOADED_TABLE_CREATE =
+                "CREATE TABLE " + DOWNLOADED_TABLE_NAME + "(" +
+                        COLUMN_ENTRY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        COLUMN_VIDEO_ID + " TEXT NOT NULL UNIQUE," +
+                        COLUMN_TITLE + " TEXT NOT NULL," +
+                        COLUMN_DURATION + " TEXT," +
+                        COLUMN_THUMBNAIL_URL + " TEXT," +
+                        COLUMN_VIEWS_NUMBER + " TEXT)";
+
         public static final String DROP_QUERY_RECENTLY_WATCHED = "DROP TABLE " + RECENTLY_WATCHED_TABLE_NAME;
         public static final String DROP_QUERY_FAVORITES = "DROP TABLE " + FAVORITES_TABLE_NAME;
+        public static final String DROP_QUERY_DOWNLOADED = "DROP TABLE " + DOWNLOADED_TABLE_NAME;
     }
 
     /**

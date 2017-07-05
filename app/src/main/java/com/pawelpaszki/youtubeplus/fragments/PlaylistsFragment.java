@@ -220,7 +220,7 @@ public class PlaylistsFragment extends BaseFragment implements
     }
 
     @Override
-    public void onRemoveClicked(YouTubeVideo video) {
+    public void onAdditionalClicked(YouTubeVideo video) {
         // do nothing
     }
 
