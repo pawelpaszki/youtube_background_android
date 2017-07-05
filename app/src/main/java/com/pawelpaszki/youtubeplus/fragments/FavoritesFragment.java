@@ -17,6 +17,7 @@ package com.pawelpaszki.youtubeplus.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -36,6 +37,7 @@ import com.pawelpaszki.youtubeplus.utils.Config;
 import com.pawelpaszki.youtubeplus.utils.MediaStorageHandler;
 import com.pawelpaszki.youtubeplus.utils.NetworkConf;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -126,6 +128,16 @@ public class FavoritesFragment extends BaseFragment implements ItemEventsListene
 
     @Override
     public void onAdditionalClicked(YouTubeVideo video) {
+        String filename = video.getId();
+        File[] files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
+        for (File file : files) {
+            if (file.getAbsolutePath().contains(filename)) {
+                Toast.makeText(YTApplication.getAppContext(), "Video has been downloaded already",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
         boolean notExists = YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).create(video);
         //TODO check if exists already on sd card
         if(notExists) {
