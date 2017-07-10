@@ -17,12 +17,16 @@ package com.pawelpaszki.youtubeplus.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import com.pawelpaszki.youtubeplus.MainActivity;
 import com.pawelpaszki.youtubeplus.R;
@@ -69,6 +73,11 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
         View v = inflater.inflate(R.layout.fragment_list, container, false);
         playListsView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         playListsView.setLayoutManager(new LinearLayoutManager(context));
+        LinearLayout videosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videosContainer.getLayoutParams();
+        float density = context.getResources().getDisplayMetrics().density;
+        params.topMargin = (int) (30 * density);
+        videosContainer.setLayoutParams(params);
 
         noThumbnailAdapter = new NoThumbnailAdapter(context, customVideos,"playListsFragment");
         noThumbnailAdapter.setOnItemEventsListener(this);

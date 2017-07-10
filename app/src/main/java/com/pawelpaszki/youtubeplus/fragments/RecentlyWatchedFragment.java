@@ -25,6 +25,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.pawelpaszki.youtubeplus.MainActivity;
@@ -75,6 +76,8 @@ public class RecentlyWatchedFragment extends BaseFragment implements
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_list, container, false);
+        LinearLayout spinner = (LinearLayout) v.findViewById(R.id.playlist_management);
+        spinner.setVisibility(View.GONE);
         recentlyPlayedListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         recentlyPlayedListView.setLayoutManager(new LinearLayoutManager(context));
         videoListAdapter = new VideosAdapter(context, recentlyPlayedVideos, "recentlyWatched");

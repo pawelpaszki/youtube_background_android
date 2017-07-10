@@ -24,6 +24,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import com.pawelpaszki.youtubeplus.MainActivity;
@@ -78,6 +79,8 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_list, container, false);
+        LinearLayout spinner = (LinearLayout) v.findViewById(R.id.playlist_management);
+        spinner.setVisibility(View.GONE);
         videosFoundListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         videosFoundListView.setLayoutManager(new LinearLayoutManager(context));
         loadingProgressBar = (ProgressBar) v.findViewById(R.id.fragment_progress_bar);

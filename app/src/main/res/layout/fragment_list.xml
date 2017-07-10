@@ -3,16 +3,70 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <android.support.v4.widget.SwipeRefreshLayout
-        android:id="@+id/swipe_to_refresh"
+    <LinearLayout android:layout_height="30dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:orientation="horizontal"
+        android:weightSum="100"
+        android:id="@+id/playlist_management">
+        <Spinner
+            android:id="@+id/playlist_spinner"
+            android:layout_weight="70"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/spinner_background"
+            android:drawSelectorOnTop="true"
+            android:dropDownWidth="wrap_content"
+            android:paddingBottom="0dp"
+            android:popupBackground="#ffffff"
+            android:textAlignment="textEnd"
+            android:textColor="#1A237E"
+            android:textSize="16sp" />
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="25">
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/fragment_list_items"
+            <ImageView
+                android:id="@+id/remove_button"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:layout_marginEnd="5dp"
+                android:backgroundTint="@color/colorPrimaryDark"
+                android:background="@android:drawable/ic_menu_delete" />
+
+
+            <ImageView
+                android:id="@+id/add_button"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginEnd="5dp"
+                android:layout_centerInParent="true"
+                android:layout_toStartOf="@id/remove_button"
+                android:backgroundTint="@color/colorPrimaryDark"
+                android:background="@android:drawable/ic_menu_add" />
+
+        </RelativeLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:id="@+id/videos_container">
+        <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_to_refresh"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </android.support.v4.widget.SwipeRefreshLayout>
+            android:layout_height="wrap_content">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/fragment_list_items"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </android.support.v4.widget.SwipeRefreshLayout>
+    </LinearLayout>
+
 
     <ProgressBar
         android:id="@+id/fragment_progress_bar"
