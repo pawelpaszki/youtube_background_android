@@ -18,6 +18,7 @@ package com.pawelpaszki.youtubeplus.adapters;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -69,53 +70,62 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
         final YouTubeVideo video = list.get(position);
-        if (YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.FAVORITE).checkIfExists(video.getId())) {
-            itemChecked[position] = true;
-        } else {
-            itemChecked[position] = false;
-        }
         Picasso.with(context).load(video.getThumbnailURL()).into(holder.thumbnail);
         holder.title.setText(video.getTitle());
         holder.duration.setText(video.getDuration());
-        holder.viewCount.setText(video.getViewCount());
-        holder.favoriteCheckBox.setOnCheckedChangeListener(null);
-        holder.favoriteCheckBox.setChecked(itemChecked[position]);
-        if(this.mFragment.equals("recentlyWatched") || this.mFragment.equals("downloadedFragment")) {
-            holder.additionalActionButton.setVisibility(View.VISIBLE);
-            holder.additionalActionButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (itemEventsListener != null) {
-                        itemEventsListener.onAdditionalClicked(video);
-                    }
+        Log.i("views", video.getViewCount());
+        String views;
+        if(video.getViewCount().length() < 10) {
+            views = video.getViewCount();
+        } else if (video.getViewCount().length() < 14) {
+            String []tokens = video.getViewCount().split(",");
+            views = tokens[0] + "K views";
+        } else if (video.getViewCount().length() < 18){
+            String []tokens = video.getViewCount().split(",");
+            views = tokens[0] + "M views";
+        } else {
+            String []tokens = video.getViewCount().split(",");
+            views = tokens[0] + "." + tokens[1] + "M views";
+        }
+        holder.viewCount.setText(views);
+        setClickable(holder.addActionButton);
+        setClickable(holder.removeActionButton);
+        setClickable(holder.downloadActionButton);
+        holder.addActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (itemEventsListener != null) {
+                    itemEventsListener.onAddClicked(video);
                 }
-            });
-        } else if (this.mFragment.equals("favouritesFragment")) {
-            holder.additionalActionButton.setVisibility(View.VISIBLE);
-
-            Resources res = context.getResources();
-
-            Drawable icon = res.getDrawable(R.drawable.download);
-            ((ImageView) holder.additionalActionButton).setBackground(icon);
-            holder.additionalActionButton.setOnClickListener(new View.OnClickListener() {
+            }
+        });
+        if(mFragment.equals("searchFragment")) {
+            holder.removeActionButton.setVisibility(View.INVISIBLE);
+        } else {
+            holder.removeActionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (itemEventsListener != null) {
-                        itemEventsListener.onAdditionalClicked(video);
+                        itemEventsListener.onRemoveClicked(video);
                     }
                 }
             });
         }
-        holder.favoriteCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton btn, boolean isChecked) {
-                itemChecked[position] = isChecked;
+        holder.downloadActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
                 if (itemEventsListener != null) {
-                    itemEventsListener.onFavoriteClicked(video, isChecked);
+                    itemEventsListener.onDownloadClicked(video);
                 }
             }
         });
 
         holder.itemView.setTag(video);
+    }
+
+    private void setClickable(ImageView view) {
+        view.bringToFront();
+        view.setClickable(true);
     }
 
     @Override
@@ -136,8 +146,9 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
         TextView title;
         TextView duration;
         TextView viewCount;
-        CheckBox favoriteCheckBox;
-        ImageView additionalActionButton;
+        ImageView addActionButton;
+        ImageView removeActionButton;
+        ImageView downloadActionButton;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -145,8 +156,9 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
             title = (TextView) itemView.findViewById(R.id.video_title);
             duration = (TextView) itemView.findViewById(R.id.video_duration);
             viewCount = (TextView) itemView.findViewById(R.id.views_number);
-            favoriteCheckBox = (CheckBox) itemView.findViewById(R.id.favoriteButton);
-            additionalActionButton = (ImageView) itemView.findViewById(R.id.additionalActionButton);
+            addActionButton = (ImageView) itemView.findViewById(R.id.addActionButton);
+            removeActionButton = (ImageView) itemView.findViewById(R.id.removeActionButton);
+            downloadActionButton = (ImageView) itemView.findViewById(R.id.downloadActionButton);
         }
     }
 

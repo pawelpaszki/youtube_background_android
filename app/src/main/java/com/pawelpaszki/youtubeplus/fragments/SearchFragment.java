@@ -31,10 +31,10 @@ import com.pawelpaszki.youtubeplus.R;
 import com.pawelpaszki.youtubeplus.adapters.VideosAdapter;
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.interfaces.ItemEventsListener;
-import com.pawelpaszki.youtubeplus.interfaces.OnFavoritesSelected;
 import com.pawelpaszki.youtubeplus.interfaces.OnItemSelected;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 import com.pawelpaszki.youtubeplus.utils.Config;
+import com.pawelpaszki.youtubeplus.utils.MediaDownloader;
 import com.pawelpaszki.youtubeplus.utils.NetworkConf;
 import com.pawelpaszki.youtubeplus.youtube.YouTubeVideosLoader;
 
@@ -56,7 +56,6 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
     private NetworkConf networkConf;
     private Context context;
     private OnItemSelected itemSelected;
-    private OnFavoritesSelected onFavoritesSelected;
 
     public SearchFragment() {
         // Required empty public constructor
@@ -82,7 +81,7 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
         videosFoundListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         videosFoundListView.setLayoutManager(new LinearLayoutManager(context));
         loadingProgressBar = (ProgressBar) v.findViewById(R.id.fragment_progress_bar);
-        videoListAdapter = new VideosAdapter(context, searchResultsList,"");
+        videoListAdapter = new VideosAdapter(context, searchResultsList,"searchFragment");
         videoListAdapter.setOnItemEventsListener(this);
         videosFoundListView.setAdapter(videoListAdapter);
 
@@ -96,18 +95,16 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
         super.onAttach(context);
 
         if (context instanceof MainActivity) {
-            this.context = context;
             itemSelected = (MainActivity) context;
-            onFavoritesSelected = (MainActivity) context;
+            this.context = context;
         }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        this.context = null;
         this.itemSelected = null;
-        this.onFavoritesSelected = null;
+        this.context = null;
     }
 
     /**
@@ -152,13 +149,13 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
 
 
     @Override
-    public void onAdditionalClicked(YouTubeVideo video) {
-        // do nothing
+    public void onAddClicked(YouTubeVideo video) {
+        // TODO
     }
 
     @Override
-    public void onFavoriteClicked(YouTubeVideo video, boolean isChecked) {
-        onFavoritesSelected.onFavoritesSelected(video, isChecked); // pass event to MainActivity
+    public void onRemoveClicked(YouTubeVideo video) {
+        //do nothing
     }
 
     @Override
@@ -166,5 +163,10 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
         YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).create(video);
         //itemSelected.onVideoSelected(video);
         itemSelected.onPlaylistSelected(searchResultsList, searchResultsList.indexOf(video));
+    }
+
+    @Override
+    public void onDownloadClicked(YouTubeVideo video) {
+        MediaDownloader.downloadMedia(video, context);
     }
 }

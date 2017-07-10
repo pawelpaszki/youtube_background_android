@@ -7,9 +7,11 @@ import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
  */
 
 public interface ItemEventsListener<Model> {
-    void onAdditionalClicked(YouTubeVideo video);
+    void onAddClicked(YouTubeVideo video);
 
-    void onFavoriteClicked(YouTubeVideo video, boolean isChecked);
+    void onRemoveClicked(YouTubeVideo video);
 
     void onItemClick(Model model); //handle click on a row (video or playlist)
+
+    void onDownloadClicked(YouTubeVideo video);
 }

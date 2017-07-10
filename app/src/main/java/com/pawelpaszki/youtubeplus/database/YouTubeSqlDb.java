@@ -38,11 +38,11 @@ public class YouTubeSqlDb {
     private static final String DATABASE_NAME = "YouTubeDb.db";
 
     public static final String RECENTLY_WATCHED_TABLE_NAME = "recently_watched_videos";
-    public static final String FAVORITES_TABLE_NAME = "favorites_videos";
+    public static final String CUSTOM_TABLE_NAME = "favorites_videos";
     public static final String DOWNLOADED_TABLE_NAME = "downloaded_videos";
     private static final String TAG = "SMEDIC TABLE SQL";
 
-    public enum VIDEOS_TYPE {FAVORITE, RECENTLY_WATCHED, DOWNLOADED}
+    public enum VIDEOS_TYPE {CUSTOM, RECENTLY_WATCHED, DOWNLOADED}
 
     private YouTubeDbHelper dbHelper;
 
@@ -66,12 +66,12 @@ public class YouTubeSqlDb {
 
         playlists = new Playlists();
         recentlyWatchedVideos = new Videos(RECENTLY_WATCHED_TABLE_NAME);
-        favoriteVideos = new Videos(FAVORITES_TABLE_NAME);
+        favoriteVideos = new Videos(CUSTOM_TABLE_NAME);
         downloadedVideos = new Videos(DOWNLOADED_TABLE_NAME);
     }
 
     public Videos videos(VIDEOS_TYPE type) {
-        if (type == VIDEOS_TYPE.FAVORITE) {
+        if (type == VIDEOS_TYPE.CUSTOM) {
             return favoriteVideos;
         } else if (type == VIDEOS_TYPE.RECENTLY_WATCHED) {
             return recentlyWatchedVideos;
@@ -310,7 +310,7 @@ public class YouTubeSqlDb {
                         COLUMN_VIEWS_NUMBER + " TEXT)";
 
         private static final String DATABASE_FAVORITES_TABLE_CREATE =
-                "CREATE TABLE " + FAVORITES_TABLE_NAME + "(" +
+                "CREATE TABLE " + CUSTOM_TABLE_NAME + "(" +
                         COLUMN_ENTRY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                         COLUMN_VIDEO_ID + " TEXT NOT NULL UNIQUE," +
                         COLUMN_TITLE + " TEXT NOT NULL," +
@@ -328,7 +328,7 @@ public class YouTubeSqlDb {
                         COLUMN_VIEWS_NUMBER + " TEXT)";
 
         public static final String DROP_QUERY_RECENTLY_WATCHED = "DROP TABLE " + RECENTLY_WATCHED_TABLE_NAME;
-        public static final String DROP_QUERY_FAVORITES = "DROP TABLE " + FAVORITES_TABLE_NAME;
+        public static final String DROP_QUERY_FAVORITES = "DROP TABLE " + CUSTOM_TABLE_NAME;
         public static final String DROP_QUERY_DOWNLOADED = "DROP TABLE " + DOWNLOADED_TABLE_NAME;
     }
 

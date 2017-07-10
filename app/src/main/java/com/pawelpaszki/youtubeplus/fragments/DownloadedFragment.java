@@ -13,18 +13,21 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.pawelpaszki.youtubeplus.BackgroundAudioService;
 import com.pawelpaszki.youtubeplus.MainActivity;
 import com.pawelpaszki.youtubeplus.R;
+import com.pawelpaszki.youtubeplus.YTApplication;
+import com.pawelpaszki.youtubeplus.adapters.NoThumbnailAdapter;
 import com.pawelpaszki.youtubeplus.adapters.VideosAdapter;
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.interfaces.ItemEventsListener;
-import com.pawelpaszki.youtubeplus.interfaces.OnFavoritesSelected;
 import com.pawelpaszki.youtubeplus.interfaces.OnItemSelected;
 import com.pawelpaszki.youtubeplus.model.ItemType;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 import com.pawelpaszki.youtubeplus.utils.Config;
+import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,13 +38,11 @@ import java.util.ArrayList;
 
 public class DownloadedFragment extends BaseFragment implements ItemEventsListener<YouTubeVideo> {
 
-    private static final String ACTION_LOCAL_PLAYBACK_STARTED = "LocalPlaybackStarted";
     private ArrayList<YouTubeVideo> downloadedVideos;
 
     private RecyclerView downloadedListView;
-    private VideosAdapter videoListAdapter;
+    private NoThumbnailAdapter videoListAdapter;
     private OnItemSelected itemSelected;
-    private OnFavoritesSelected onFavoritesSelected;
     private Context context;
 
     public DownloadedFragment() {
@@ -65,7 +66,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         View v = inflater.inflate(R.layout.fragment_list, container, false);
         downloadedListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         downloadedListView.setLayoutManager(new LinearLayoutManager(context));
-        videoListAdapter = new VideosAdapter(context, downloadedVideos, "downloadedFragment");
+        videoListAdapter = new NoThumbnailAdapter(context, downloadedVideos, "downloadedFragment");
         videoListAdapter.setOnItemEventsListener(this);
         downloadedListView.setAdapter(videoListAdapter);
 
@@ -87,8 +88,6 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         super.onAttach(context);
         if (context instanceof MainActivity) {
             this.context = context;
-            itemSelected = (MainActivity) context;
-            onFavoritesSelected = (MainActivity) context;
         }
     }
 
@@ -96,42 +95,70 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     public void onDetach() {
         super.onDetach();
         this.context = null;
-        itemSelected = null;
-        onFavoritesSelected = null;
     }
 
     @Override
-    public void onAdditionalClicked(YouTubeVideo video) {
+    public void onRemoveClicked(YouTubeVideo video) {
+        Log.i("remove clicked","true");
         downloadedVideos.remove(video);
-
         String filename = video.getId();
         File[] files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
-        for(int i = 0; i < files.length; i++) {
-            if(files[i].getAbsolutePath().toString().contains(filename)) {
-                String fileToRemove = files[i].getAbsolutePath();
+        for (File file1 : files) {
+            if (file1.getAbsolutePath().contains(filename)) {
+                String fileToRemove = file1.getAbsolutePath();
                 File file = new File(fileToRemove);
                 boolean ignored = file.delete();
-                YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).delete(video.getId());
-                videoListAdapter.notifyDataSetChanged();
                 break;
             }
         }
+        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).delete(video.getId());
+        videoListAdapter.notifyDataSetChanged();
     }
 
     @Override
-    public void onFavoriteClicked(YouTubeVideo video, boolean isChecked) {
-        onFavoritesSelected.onFavoritesSelected(video, isChecked); // pass event to MainActivity
+    public void onAddClicked(YouTubeVideo video) {
+        Log.i("add clicked","true");
+        //TODO
     }
 
     @Override
     public void onItemClick(YouTubeVideo video) {
         Log.i("item clicked", "downloaded");
-        Intent serviceIntent = new Intent(getActivity(), BackgroundAudioService.class);
-        serviceIntent.setAction(BackgroundAudioService.ACTION_PLAY);
-        serviceIntent.putExtra(Config.YOUTUBE_TYPE, ItemType.MEDIA_LOCAL);
-        serviceIntent.putExtra(Config.YOUTUBE_TYPE_VIDEO, video);
-        serviceIntent.putExtra(Config.LOCAL_MEDIA_FILEAME, video.getId());
-        serviceIntent.putExtra(Config.YOUTUBE_TYPE_PLAYLIST, (ArrayList) downloadedVideos);
-        getActivity().startService(serviceIntent);
+        if(fileExists(video)) {
+            Intent serviceIntent = new Intent(getActivity(), BackgroundAudioService.class);
+            serviceIntent.setAction(BackgroundAudioService.ACTION_PLAY);
+            serviceIntent.putExtra(Config.YOUTUBE_TYPE, ItemType.MEDIA_LOCAL);
+            serviceIntent.putExtra(Config.YOUTUBE_TYPE_VIDEO, video);
+            serviceIntent.putExtra(Config.LOCAL_MEDIA_FILEAME, video.getId());
+            serviceIntent.putExtra(Config.YOUTUBE_TYPE_PLAYLIST, (ArrayList) downloadedVideos);
+            getActivity().startService(serviceIntent);
+        } else if (SharedPrefs.getDownloadInProgress(context, video.getId())) {
+            Toast.makeText(YTApplication.getAppContext(), "Media is still being downloaded",
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            downloadedVideos.remove(video);
+            YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).delete(video.getId());
+            videoListAdapter.notifyDataSetChanged();
+            Toast.makeText(YTApplication.getAppContext(), "Unable to find media",
+                    Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    @Override
+    public void onDownloadClicked(YouTubeVideo video) {
+        //do nothing
+    }
+
+    private boolean fileExists(YouTubeVideo video) {
+        String filename = video.getId();
+        File[] files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
+        for (File file : files) {
+            if (file.getAbsolutePath().contains(filename)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
+

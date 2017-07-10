@@ -49,6 +49,7 @@ import android.widget.VideoView;
 import com.facebook.network.connectionclass.ConnectionClassManager;
 import com.facebook.network.connectionclass.ConnectionQuality;
 import com.facebook.network.connectionclass.DeviceBandwidthSampler;
+import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.model.ItemType;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 import com.pawelpaszki.youtubeplus.utils.Config;
@@ -658,7 +659,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                         videoItem = youTubeVideos.get(newIndex);
                         startMediaPlayerWithLocalMedia(youTubeVideos.get(newIndex).getId());
                     } else {
-                        //TODO clear downloaded
+                        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).deleteAll();
                     }
                 }
             }
@@ -669,9 +670,9 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 
     private boolean anyLocalMediaExists() {
         File[] files =Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
-        for(int i = 0; i < files.length; i++) {
-            for(int j = 0; j < youTubeVideos.size(); j++) {
-                if(files[i].getAbsolutePath().toString().contains(youTubeVideos.get(j).getId())) {
+        for (File file : files) {
+            for (int j = 0; j < youTubeVideos.size(); j++) {
+                if (file.getAbsolutePath().contains(youTubeVideos.get(j).getId())) {
                     return true;
                 }
             }

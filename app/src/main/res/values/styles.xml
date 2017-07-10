@@ -13,5 +13,7 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
-
+    <style name="seekBarColor">
+        <item name="colorAccent">@color/colorAccent</item> <!-- Whatever color you want-->
+    </style>
 </resources>

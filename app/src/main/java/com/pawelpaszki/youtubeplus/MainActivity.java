@@ -15,68 +15,67 @@
  */
 package com.pawelpaszki.youtubeplus;
 
-import android.Manifest;
 import android.accounts.AccountManager;
-import android.annotation.TargetApi;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.database.MatrixCursor;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import android.os.Handler;
 import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
-import android.support.design.widget.TabLayout;
-import android.support.transition.Visibility;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
+import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
+import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.fragments.DownloadedFragment;
-import com.pawelpaszki.youtubeplus.fragments.FavoritesFragment;
-import com.pawelpaszki.youtubeplus.fragments.PlaylistsFragment;
+import com.pawelpaszki.youtubeplus.fragments.PlayListsFragment;
 import com.pawelpaszki.youtubeplus.fragments.RecentlyWatchedFragment;
 import com.pawelpaszki.youtubeplus.fragments.SearchFragment;
-import com.pawelpaszki.youtubeplus.interfaces.OnFavoritesSelected;
 import com.pawelpaszki.youtubeplus.interfaces.OnItemSelected;
 import com.pawelpaszki.youtubeplus.model.ItemType;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 import com.pawelpaszki.youtubeplus.utils.Config;
 import com.pawelpaszki.youtubeplus.utils.NetworkConf;
 import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
+import com.pawelpaszki.youtubeplus.viewPagers.NonSwipeableViewPager;
 import com.pawelpaszki.youtubeplus.youtube.SuggestionsLoader;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
 import static com.pawelpaszki.youtubeplus.R.layout.suggestions;
@@ -86,18 +85,15 @@ import static com.pawelpaszki.youtubeplus.youtube.YouTubeSingleton.getCredential
  * Activity that manages fragments and action bar
  */
 public class MainActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks,
-        OnItemSelected, OnFavoritesSelected {
+        OnItemSelected{
 
     private static final String TAG = "SMEDIC MAIN ACTIVITY";
     private Toolbar toolbar;
-    private TabLayout tabLayout;
     private ViewPager viewPager;
 
-    private static final int PERMISSIONS = 1;
     public static final String PREF_ACCOUNT_NAME = "accountName";
 
     static final int REQUEST_ACCOUNT_PICKER = 1000;
-    static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
 
     private SeekBar mDurationSeekbar;
     private ImageView mPreviousVideo;
@@ -109,10 +105,15 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private int mProgressSet;
     private int mPausedAt;
 
+    private ArrayList<FloatingActionButton> mControls = new ArrayList<>();
+    private FloatingActionButton mGoToDownloads;
+    private FloatingActionButton mGoToRecent;
+    private FloatingActionButton mGoToSearch;
+    private FloatingActionButton mGoToPlaylist;
 
     private SearchFragment searchFragment;
     private RecentlyWatchedFragment recentlyPlayedFragment;
-    private FavoritesFragment favoritesFragment;
+    private PlayListsFragment playListsFragment;
     private DownloadedFragment downloadedFragment;
 
     private static final String ACTION_PLAYBACK_STARTED = "playbackStarted";
@@ -122,14 +123,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     public static final String ACTION_PREVIOUS = "action_previous";
     public static final String ACTION_SEEK = "action_seek";
     public static final String ACTION_SEEKBAR_UPDATE = "action_update";
-
-    private int[] tabIcons = {
-            R.drawable.ic_downloaded,
-            R.drawable.ic_star,
-            R.drawable.ic_recently_wached,
-            R.drawable.ic_search,
-            R.drawable.ic_action_playlist
-    };
 
     private BroadcastReceiver mPlaybackStartedReceiver = new BroadcastReceiver() {
         @Override
@@ -154,6 +147,9 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     };
 
     private NetworkConf networkConf;
+    private GestureDetectorCompat mGestureDetector;
+    private boolean mControlsVisible;
+    private FloatingActionButton mHideControls;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,12 +163,42 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 
-        viewPager = (ViewPager) findViewById(R.id.viewpager);
-        viewPager.setOffscreenPageLimit(3);
-        setupViewPager(viewPager);
+        minimiseToolbar();
 
-        tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(viewPager);
+        mGestureDetector = new GestureDetectorCompat(this, new MyGestureListener());
+        RelativeLayout home = (RelativeLayout) findViewById(R.id.main_container);
+        home.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                mGestureDetector.onTouchEvent(event);
+                return false;
+            }
+        });
+
+        viewPager = (NonSwipeableViewPager) findViewById(R.id.viewpager);
+        viewPager.setOffscreenPageLimit(3);
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                if(position == 3) {
+                    expandToolbar();
+                } else {
+                    ViewGroup.LayoutParams params = toolbar.getLayoutParams();
+                    params.height = 0;
+                    toolbar.setLayoutParams(params);
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                // do nothing
+            }
+        });
+        setupViewPager(viewPager);
 
         networkConf = new NetworkConf(this);
 
@@ -205,7 +231,9 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                     //Log.i("progress set", String.valueOf(mDurationSeekbar.getProgress()));
                     mProgressSet = mDurationSeekbar.getProgress();
                     sendBroadcast("seek");
-                    setPlayIconAndDisableControls(true);
+                    if(viewPager.getCurrentItem() != 0) {
+                        setPlayIconAndDisableControls(true);
+                    }
                 }
             }
         });
@@ -264,10 +292,150 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 setIsLoopingIcon(true);
             }
         });
-        setControlsVisible(false);
-        setupTabIcons();
 
-        requestPermissions();
+        mGoToDownloads = (FloatingActionButton) findViewById(R.id.downloaded);
+        mGoToPlaylist = (FloatingActionButton) findViewById(R.id.playlist);
+        mGoToRecent = (FloatingActionButton) findViewById(R.id.recent);
+        mGoToSearch = (FloatingActionButton) findViewById(R.id.search);
+        mHideControls = (FloatingActionButton) findViewById(R.id.hide);
+        mControls.add(mGoToDownloads);
+        mControls.add(mGoToPlaylist);
+        mControls.add(mGoToRecent);
+        mControls.add(mGoToSearch);
+        mControls.add(mHideControls);
+        for(int i = 0; i < mControls.size() - 1; i++) {
+            final int j = i;
+            mControls.get(i).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    viewPager.setCurrentItem(j, false);
+                    setButtonBackgroundTint();
+                }
+            });
+            mControls.get(i).setVisibility(View.GONE);
+        }
+        mGoToDownloads.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FF8A80")));
+        mHideControls.setVisibility(View.GONE);
+    }
+
+    private void setButtonBackgroundTint() {
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                for(int i = 0; i < mControls.size() - 1; i++) {
+                    if(i == viewPager.getCurrentItem()) {
+                        mControls.get(i).setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FF8A80")));
+                    } else {
+                        mControls.get(i).setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#00000000")));
+                    }
+                }
+            }
+        }, 20);
+
+    }
+
+    private void minimiseToolbar() {
+        ViewGroup.LayoutParams params = toolbar.getLayoutParams();
+        params.height = 0;
+        toolbar.setLayoutParams(params);
+    }
+
+    private void expandToolbar() {
+        TypedValue tv = new TypedValue();
+        int height;
+        if (getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
+            height = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
+        } else {
+            height = 60;
+        }
+        for (int i = 10, j = 1; i > 0; i--, j++) {
+            final int k = i;
+            final int newHeight = height;
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    ViewGroup.LayoutParams params = toolbar.getLayoutParams();
+                    params.height = newHeight / k;
+                    toolbar.setLayoutParams(params);
+                }
+            }, j * 5);
+        }
+
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        mGestureDetector.onTouchEvent(event);
+        return false;
+    }
+
+    public void hideControls(View view) {
+        showNavigationButtons();
+    }
+
+    private class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
+
+        private static final int SWIPE_THRESHOLD = 100;
+        private static final int SWIPE_VELOCITY_THRESHOLD = 100;
+
+        @Override
+        public boolean onDown(MotionEvent event) {
+            return true;
+        }
+
+        @Override
+        public boolean onFling(MotionEvent event1, MotionEvent event2,
+                               float velocityX, float velocityY) {
+            if(event1 != null && event2 != null) {
+                float diffY = event2.getY() - event1.getY();
+                float diffX = event2.getX() - event1.getX();
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                        if (diffX > 0) {
+                            showNavigationButtons();
+                            //TODO show buttons
+                        } else {
+                            Log.i("swipe", "left");
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+    }
+
+    private void showNavigationButtons() {
+        if(mControlsVisible) {
+            for(int i = 100, j = 4; i <= 500; i = i + 100, j--) {
+                final int jj = j;
+                mControls.get(j).setVisibility(View.VISIBLE);
+                final Animation fadeIn = new AlphaAnimation(1,0);
+                fadeIn.setStartOffset(i);
+                fadeIn.setDuration(i);
+                mControls.get(j).setAnimation(fadeIn);
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable(){
+                    @Override
+                    public void run()
+                    {
+                        mControls.get(jj).setVisibility(View.GONE);
+                    }
+                }, i * 2);
+            }
+        } else {
+            for(int i = 100, j = 0; i <= 500; i = i + 100, j++) {
+                mControls.get(j).setVisibility(View.VISIBLE);
+                final Animation fadeIn = new AlphaAnimation(0,1);
+                fadeIn.setStartOffset(i);
+                fadeIn.setDuration(i);
+                mControls.get(j).setAnimation(fadeIn);
+            }
+        }
+        mControlsVisible = !mControlsVisible;
     }
 
     @Override
@@ -370,45 +538,45 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         }
     }
 
-    /**
-     * Attempts to set the account used with the API credentials. If an account
-     * name was previously saved it will use that one; otherwise an account
-     * picker dialog will be shown to the user. Note that the setting the
-     * account to use with the credentials object requires the app to have the
-     * GET_ACCOUNTS permission, which is requested here if it is not already
-     * present. The AfterPermissionGranted annotation indicates that this
-     * function will be rerun automatically whenever the GET_ACCOUNTS permission
-     * is granted.
-     */
-    @AfterPermissionGranted(PERMISSIONS)
-    private void requestPermissions() {
-        String[] perms = {Manifest.permission.GET_ACCOUNTS, Manifest.permission.READ_PHONE_STATE};
-        if (EasyPermissions.hasPermissions(this, perms)) {
-            // Already have permission, do the thing
-            if (EasyPermissions.hasPermissions(this, Manifest.permission.GET_ACCOUNTS)) {
-                String accountName = getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_NAME, null);
-                if (accountName != null) {
-                    getCredential().setSelectedAccountName(accountName);
-                } else {
-                    // Start a dialog from which the user can choose an account
-                    startActivityForResult(
-                            getCredential().newChooseAccountIntent(),
-                            REQUEST_ACCOUNT_PICKER);
-                }
-            } else {
-                // Request the GET_ACCOUNTS permission via a user dialog
-                EasyPermissions.requestPermissions(
-                        this,
-                        "This app needs to access your Google account (via Contacts).",
-                        REQUEST_PERMISSION_GET_ACCOUNTS,
-                        Manifest.permission.GET_ACCOUNTS);
-            }
-        } else {
-            // Do not have permissions, request them now
-            EasyPermissions.requestPermissions(this, getString(R.string.all_permissions_request),
-                    PERMISSIONS, perms);
-        }
-    }
+//    /**
+//     * Attempts to set the account used with the API credentials. If an account
+//     * name was previously saved it will use that one; otherwise an account
+//     * picker dialog will be shown to the user. Note that the setting the
+//     * account to use with the credentials object requires the app to have the
+//     * GET_ACCOUNTS permission, which is requested here if it is not already
+//     * present. The AfterPermissionGranted annotation indicates that this
+//     * function will be rerun automatically whenever the GET_ACCOUNTS permission
+//     * is granted.
+//     */
+//    @AfterPermissionGranted(PERMISSIONS)
+//    private void requestPermissions() {
+//        String[] perms = {Manifest.permission.GET_ACCOUNTS, Manifest.permission.READ_PHONE_STATE};
+//        if (EasyPermissions.hasPermissions(this, perms)) {
+//            // Already have permission, do the thing
+//            if (EasyPermissions.hasPermissions(this, Manifest.permission.GET_ACCOUNTS)) {
+//                String accountName = getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_NAME, null);
+//                if (accountName != null) {
+//                    getCredential().setSelectedAccountName(accountName);
+//                } else {
+//                    // Start a dialog from which the user can choose an account
+//                    startActivityForResult(
+//                            getCredential().newChooseAccountIntent(),
+//                            REQUEST_ACCOUNT_PICKER);
+//                }
+//            } else {
+//                // Request the GET_ACCOUNTS permission via a user dialog
+//                EasyPermissions.requestPermissions(
+//                        this,
+//                        "This app needs to access your Google account (via Contacts).",
+//                        REQUEST_PERMISSION_GET_ACCOUNTS,
+//                        Manifest.permission.GET_ACCOUNTS);
+//            }
+//        } else {
+//            // Do not have permissions, request them now
+//            EasyPermissions.requestPermissions(this, getString(R.string.all_permissions_request),
+//                    PERMISSIONS, perms);
+//        }
+//    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -456,24 +624,12 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             String query = intent.getStringExtra(SearchManager.QUERY);
 
-            viewPager.setCurrentItem(2, true); //switch to search fragment
-
             if (searchFragment != null) {
                 searchFragment.searchQuery(query);
             }
         }
     }
 
-    /**
-     * Setups icons for 3 tabs
-     */
-    private void setupTabIcons() {
-        tabLayout.getTabAt(0).setIcon(tabIcons[0]);
-        tabLayout.getTabAt(1).setIcon(tabIcons[1]);
-        tabLayout.getTabAt(2).setIcon(tabIcons[2]);
-        tabLayout.getTabAt(3).setIcon(tabIcons[3]);
-        tabLayout.getTabAt(4).setIcon(tabIcons[4]);
-    }
 
     /**
      * Setups viewPager for switching between pages according to the selected tab
@@ -485,16 +641,14 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
 
         searchFragment = SearchFragment.newInstance();
+        playListsFragment = PlayListsFragment.newInstance();
         recentlyPlayedFragment = RecentlyWatchedFragment.newInstance();
-        favoritesFragment = FavoritesFragment.newInstance();
         downloadedFragment = DownloadedFragment.newInstance();
-        PlaylistsFragment playlistsFragment = PlaylistsFragment.newInstance();
 
         adapter.addFragment(downloadedFragment, null);
-        adapter.addFragment(favoritesFragment, null);
+        adapter.addFragment(playListsFragment, null);
         adapter.addFragment(recentlyPlayedFragment, null);
         adapter.addFragment(searchFragment, null);
-        adapter.addFragment(playlistsFragment, null);
         viewPager.setAdapter(adapter);
     }
 
@@ -551,19 +705,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         Drawable pause = res.getDrawable(android.R.drawable.ic_media_pause);
         mPlay.setImageDrawable(pause);
     }
-
-
-
-    @Override
-    public void onFavoritesSelected(YouTubeVideo video, boolean isChecked) {
-        if (isChecked) {
-            favoritesFragment.addToFavoritesList(video);
-        } else {
-            favoritesFragment.removeFromFavorites(video);
-        }
-    }
-
-
 
     /**
      * Class which provides adapter for fragment pager
@@ -714,29 +855,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_about) {
-
-            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-            alertDialog.setTitle(getString(R.string.myName));
-            alertDialog.setIcon(R.mipmap.ic_launcher);
-
-            alertDialog.setMessage(getString(R.string.app_name) + " " + BuildConfig.VERSION_NAME + "\n\n" +
-                    getString(R.string.email) + "\n\n");
-            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, getString(R.string.ok),
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
-            alertDialog.show();
-
-            return true;
-        } else if (id == R.id.action_clear_list) {
-            YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).deleteAll();
-            recentlyPlayedFragment.clearRecentlyPlayedList();
-            return true;
-        } else if (id == R.id.action_search) {
+        if (id == R.id.action_search) {
             MenuItemCompat.expandActionView(item);
             return true;
         }

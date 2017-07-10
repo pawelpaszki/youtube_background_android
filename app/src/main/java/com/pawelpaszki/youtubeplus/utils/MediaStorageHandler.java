@@ -1,7 +1,10 @@
 package com.pawelpaszki.youtubeplus.utils;
 
 import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
@@ -70,12 +73,12 @@ public class MediaStorageHandler {
 
                 Log.i("video tag", String.valueOf(index));
                 String filename = video.getId() + "." + ytFile.getFormat().getExt();
-                downloadFromUrl(ytFile.getUrl(), video.getTitle(), filename, context);
+                downloadFromUrl(ytFile.getUrl(), video.getTitle(), filename, context, video.getId());
             }
         }.extract(youtubeLink, true, false);
     }
 
-    private static void downloadFromUrl(String youtubeDlUrl, String downloadTitle, String fileName, Context context) {
+    private static void downloadFromUrl(String youtubeDlUrl, String downloadTitle, String fileName, Context context,  final String videoId) {
         Uri uri = Uri.parse(youtubeDlUrl);
         DownloadManager.Request request = new DownloadManager.Request(uri);
         request.setTitle(downloadTitle);
@@ -86,5 +89,20 @@ public class MediaStorageHandler {
 
         DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
         manager.enqueue(request);
+        SharedPrefs.setDownloadInProgress(videoId, true, context);
+        final BroadcastReceiver onComplete=new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                SharedPrefs.setDownloadInProgress(videoId, false, context);
+                try {
+                    context.unregisterReceiver(this);
+                } catch (NullPointerException ignored) {
+
+                }
+
+            }
+        };
+
+        context.registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
     }
 }
