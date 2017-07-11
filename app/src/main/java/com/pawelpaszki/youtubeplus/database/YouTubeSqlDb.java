@@ -216,24 +216,6 @@ public class YouTubeSqlDb {
         }
 
         /**
-         * Deletes single custom playlist and its entries
-         *
-         * @param videoIds - ids to remove
-         * @param context
-         * @return
-         */
-        public boolean deleteCustomPlayList(ArrayList<String> videoIds, Context context) {
-            for(String videoId: videoIds) {
-                SharedPrefs.setVideoCounter(videoId, SharedPrefs.getVideoCounter(videoId, context) - 1, context);
-                if(SharedPrefs.getVideoCounter(videoId, context) == 0) {
-                    return dbHelper.getWritableDatabase().delete(tableName,
-                            YouTubeVideoEntry.COLUMN_VIDEO_ID + "='" + videoId + "'", null) > 0;
-                }
-            }
-            return true;
-        }
-
-        /**
          * Deletes all entries from database
          *
          * @return

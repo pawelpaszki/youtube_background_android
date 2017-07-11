@@ -13,6 +13,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.pawelpaszki.youtubeplus.YTApplication;
+import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
 
@@ -26,8 +27,8 @@ import java.util.Set;
 
 public class AddToPlayListDialog {
 
-    public static void showPlaylistSelectionDialog(final Context context, YouTubeVideo video) {
-        if(SharedPrefs.getPlayListNames(context).size() > 0) {
+    public static void showPlaylistSelectionDialog(final Context context, final YouTubeVideo video) {
+        if(SharedPrefs.getPlayListNames(context) != null && SharedPrefs.getPlayListNames(context).size() > 0) {
             String[] playLists = new String[SharedPrefs.getPlayListNames(context).size()];
             playLists = SharedPrefs.getPlayListNames(context).toArray(playLists);
             final String[] radioButtonOptions = playLists;
@@ -38,7 +39,8 @@ public class AddToPlayListDialog {
                     .OnClickListener() {
                 public void onClick(DialogInterface dialog, int item) {
                     Toast.makeText(context,
-                            "Group Name = "+radioButtonOptions[item], Toast.LENGTH_SHORT).show();
+                            "playlist = "+radioButtonOptions[item], Toast.LENGTH_SHORT).show();
+                    addVideoToPlaylist(context, video, radioButtonOptions[item]);
                     dialog.dismiss();
 
                 }
@@ -68,7 +70,7 @@ public class AddToPlayListDialog {
             });
             final AlertDialog dialog = builder.create();
             dialog.show();
-            //Overriding the handler immediately after show is probably a better approach than OnShowListener as described below
+
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
             {
                 @Override
@@ -78,17 +80,25 @@ public class AddToPlayListDialog {
                         Set<String> playListNamesSet = new HashSet<>();
                         playListNamesSet.add(input.getText().toString());
                         SharedPrefs.savePlaylistNames(context, playListNamesSet);
-                        for(String item: SharedPrefs.getPlayListNames(context)) {
-                            Log.i("item", item);
-                        }
-                        SharedPrefs.savePlaylistNames(context, playListNamesSet);
-                        Toast.makeText(YTApplication.getAppContext(), "playlist created",
-                                Toast.LENGTH_SHORT).show();
+                        addVideoToPlaylist(context, video, input.getText().toString());
+
                         dialog.dismiss();
                     }
                 }
             });
         }
+    }
+
+    private static void addVideoToPlaylist(Context context, YouTubeVideo video, String playListName) {
+        ArrayList<String> playlistItems = SharedPrefs.getPlaylistVideoIds(context, playListName);
+        if(!playlistItems.contains(video.getId())) {
+            playlistItems.add(video.getId());
+            SharedPrefs.savePlaylistVideoIds(context, playlistItems, playListName);
+            YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.CUSTOM).create(video);
+            int videoCounter = SharedPrefs.getVideoCounter(video.getId(), context) + 1;
+            SharedPrefs.setVideoCounter(video.getId(), videoCounter,context);
+        }
+
     }
 
 }

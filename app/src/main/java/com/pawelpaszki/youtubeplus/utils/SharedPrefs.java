@@ -58,7 +58,7 @@ public class SharedPrefs {
         return prefs.getInt(key, 0);
     }
 
-    public static void savePlaylistVideoIds(Context context, ArrayList<Integer> videoIds, String playListName){
+    public static void savePlaylistVideoIds(Context context, ArrayList<String> videoIds, String playListName){
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         if (prefs != null){
             StringBuilder sb = new StringBuilder();
@@ -83,8 +83,8 @@ public class SharedPrefs {
         }
     }
 
-    public static ArrayList<Integer> getPlaylistVideoIds(Context context, String playListName){
-        ArrayList<Integer> videoIds = new ArrayList<>();
+    public static ArrayList<String> getPlaylistVideoIds(Context context, String playListName){
+        ArrayList<String> videoIds = new ArrayList<>();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         if (prefs != null) {
             String concatenatedString = prefs.getString("playlist" + playListName, "");
@@ -94,7 +94,7 @@ public class SharedPrefs {
                 String[] ids = concatenatedString.split(",");
                 for (String id : ids) {
                     try {
-                        videoIds.add(Integer.parseInt(id));
+                        videoIds.add(id);
                     } catch (Exception e) {
                         return new ArrayList<>();
                     }

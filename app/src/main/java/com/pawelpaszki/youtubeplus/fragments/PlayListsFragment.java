@@ -43,6 +43,7 @@ import com.pawelpaszki.youtubeplus.YTApplication;
 import com.pawelpaszki.youtubeplus.adapters.NoThumbnailAdapter;
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.interfaces.ItemEventsListener;
+import com.pawelpaszki.youtubeplus.interfaces.OnItemSelected;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 import com.pawelpaszki.youtubeplus.utils.MediaDownloader;
 import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
@@ -62,6 +63,7 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
     private List<YouTubeVideo> customVideos;
 
     private RecyclerView playListsView;
+    private OnItemSelected itemSelected;
     private NoThumbnailAdapter noThumbnailAdapter;
     private Context context;
     private AlertDialog.Builder mAlertBuilder;
@@ -119,6 +121,7 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Log.i("position selected", String.valueOf(position));
+                loadPlaylist();
             }
 
             @Override
@@ -132,12 +135,26 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
             public void onClick(View v) {
                 ArrayList<String> playListNames = new ArrayList<String> (SharedPrefs.getPlayListNames(context));
                 if(playListNames.size() > 0) {
-                    playListNames.remove(mSpinner.getSelectedItem().toString());
+                    String playlistName = mSpinner.getSelectedItem().toString();
+                    playListNames.remove(playlistName);
                     Set<String> playListNamesSet = new HashSet<>();
                     for(String item : playListNames) {
                         playListNamesSet.add(item);
                     }
                     SharedPrefs.savePlaylistNames(context, playListNamesSet);
+
+                    ArrayList<String> videos = SharedPrefs.getPlaylistVideoIds(context, playlistName);
+                    for(String video: videos) {
+                        int counter = SharedPrefs.getVideoCounter(video, context) - 1;
+                        SharedPrefs.setVideoCounter(video, counter, context);
+                        if(counter == 0) {
+                            YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.CUSTOM).delete(video, YouTubeSqlDb.VIDEOS_TYPE.CUSTOM.toString(), context);
+                        }
+                    }
+
+                    SharedPrefs.clearPlaylistVideoIds(context,mSpinner.getSelectedItem().toString());
+
+
                     String[] data = new String[SharedPrefs.getPlayListNames(context).size()];
                     data = SharedPrefs.getPlayListNames(context).toArray(data);
                     mSpinnerArrayAdapter = new ArrayAdapter<>(
@@ -145,13 +162,17 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
                     mSpinnerArrayAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
                     mSpinner.setAdapter(mSpinnerArrayAdapter);
                     loadPlaylist();
-                    ArrayList<String> videos = new ArrayList<>();
+                    videos = new ArrayList<>();
                     for(YouTubeVideo video: customVideos) {
                         videos.add(video.getId());
                     }
-                    YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.CUSTOM).deleteCustomPlayList(videos, context);
-
-                    //TODO remove all videos from the database
+                    ArrayList<String> playlists = SharedPrefs.getPlayListNames(context);
+                    for(String list: playlists) {
+                        ArrayList<String> ids = SharedPrefs.getPlaylistVideoIds(context,list);
+                        for(String item: ids) {
+                            Log.i("list + item + counter", list + ": " + item + ": " + String.valueOf(SharedPrefs.getVideoCounter(item, context)));
+                        }
+                    }
                 }
             }
         });
@@ -160,7 +181,7 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
             public void onClick(View v) {
                 mAlertBuilder = new AlertDialog.Builder(context);
                 mAlertBuilder.setTitle("Please enter playlist's name");
-                final ArrayList<String> playListNames = SharedPrefs.getPlayListNames(context);
+                final ArrayList<String> playListNames = SharedPrefs.getPlayListNames(context) == null ? new ArrayList<String>() : SharedPrefs.getPlayListNames(context);
 
 
                 final EditText input = new EditText(context);
@@ -254,6 +275,13 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
             mSpinnerArrayAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
             mSpinner.setAdapter(mSpinnerArrayAdapter);
             customVideos.addAll(YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.CUSTOM).readAll(data[0], context));
+            ArrayList<String> playlists = SharedPrefs.getPlayListNames(context);
+            for(String list: playlists) {
+                ArrayList<String> ids = SharedPrefs.getPlaylistVideoIds(context,list);
+                for(String item: ids) {
+                    Log.i("list + item + counter", list + ":" + item + String.valueOf(SharedPrefs.getVideoCounter(item, context)));
+                }
+            }
         }
         noThumbnailAdapter.notifyDataSetChanged();
     }
@@ -266,15 +294,16 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
                 data = SharedPrefs.getPlayListNames(context).toArray(data);
                 customVideos.addAll(YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.CUSTOM).readAll(mSpinner.getSelectedItem().toString(), context));
             }
-            noThumbnailAdapter.notifyDataSetChanged();
         }
-
+        noThumbnailAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+
         if (context instanceof MainActivity) {
+            itemSelected = (MainActivity) context;
             this.context = context;
         }
     }
@@ -282,28 +311,37 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
     @Override
     public void onDetach() {
         super.onDetach();
+        this.itemSelected = null;
         this.context = null;
     }
 
-
-
     @Override
     public void onAddClicked(YouTubeVideo video) {
-        Log.i("add clicked","playlists");
         showPlaylistSelectionDialog(context, video);
     }
 
     @Override
     public void onRemoveClicked(YouTubeVideo video) {
         Log.i("remove clicked","playlists");
-        //todo
+        customVideos.remove(video);
+        ArrayList<String> videos = new ArrayList<>();
+        for(YouTubeVideo item: customVideos) {
+            videos.add(item.getId());
+        }
+        SharedPrefs.savePlaylistVideoIds(context, videos,mSpinner.getSelectedItem().toString());
+        int counter = SharedPrefs.getVideoCounter(video.getId(), context) - 1;
+        SharedPrefs.setVideoCounter(video.getId(), counter,context);
+        if(counter == 0) {
+            YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.CUSTOM).delete(video.getId(), YouTubeSqlDb.VIDEOS_TYPE.CUSTOM.toString(), context);
+        }
+        noThumbnailAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onItemClick(YouTubeVideo video) {
-        //TODO playlists
-//        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).create(video);
-//        itemSelected.onPlaylistSelected(favoriteVideos, favoriteVideos.indexOf(video));
+        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).create(video);
+        itemSelected.onPlaylistSelected(customVideos, customVideos.indexOf(video));
+
     }
 
     @Override
