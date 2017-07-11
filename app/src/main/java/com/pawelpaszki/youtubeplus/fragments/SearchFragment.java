@@ -21,6 +21,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +43,8 @@ import com.pawelpaszki.youtubeplus.youtube.YouTubeVideosLoader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlaylistSelectionDialog;
 
 /**
  * Class that handles list of the videos searched on YouTube
@@ -153,7 +156,8 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
 
     @Override
     public void onAddClicked(YouTubeVideo video) {
-        // TODO
+        Log.i("add clicked","search fragment");
+        showPlaylistSelectionDialog(context, video);
     }
 
     @Override

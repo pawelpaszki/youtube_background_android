@@ -45,15 +45,7 @@ public class MediaStorageHandler {
                 }
                 YtFile ytFile;
                 int index = 0;
-                /*
-                itag value      Video resolution
-                160	            144p
-                133	            240p
-                134	            360p
-                135	            480p
-                136	            720p
-                137	            1080p
-                */
+
                 if(iTags.contains(22)) {
                     ytFile = ytFiles.get(22);
                     index = 22;

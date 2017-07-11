@@ -43,6 +43,8 @@ import com.pawelpaszki.youtubeplus.utils.MediaStorageHandler;
 import java.io.File;
 import java.util.ArrayList;
 
+import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlaylistSelectionDialog;
+
 /**
  * Class that handles list of the recently watched YouTube
  * Created by smedic on 7.3.16..
@@ -93,7 +95,7 @@ public class RecentlyWatchedFragment extends BaseFragment implements
     public void onResume() {
         super.onResume();
         recentlyPlayedVideos.clear();
-        recentlyPlayedVideos.addAll(YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).readAll());
+        recentlyPlayedVideos.addAll(YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).readAll(null, context));
         videoListAdapter.notifyDataSetChanged();
     }
 
@@ -126,14 +128,15 @@ public class RecentlyWatchedFragment extends BaseFragment implements
     @Override
     public void onRemoveClicked(YouTubeVideo video) {
         recentlyPlayedVideos.remove(video);
-        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).delete(video.getId());
+        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).delete(video.getId(), YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED.toString(), context);
         videoListAdapter.notifyDataSetChanged();
         Log.i("clicked", "true");
     }
 
     @Override
     public void onAddClicked(YouTubeVideo video) {
-        //todo add to playlist
+        Log.i("add clicked","recent fragment");
+        showPlaylistSelectionDialog(context, video);
     }
 
     @Override

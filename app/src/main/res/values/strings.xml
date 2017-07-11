@@ -21,6 +21,12 @@
         <item>@string/nav_item_notifications</item>
     </string-array>
 
+    <string-array name="test_values">
+        <item>Playlist 1</item>
+        <item>Playlist 2</item>
+        <item>Playlist 3</item>
+    </string-array>
+
     <string name="clear_list">Clear recently played list</string>
 
     <string name="email">pawelpaszki@gmail.com</string>

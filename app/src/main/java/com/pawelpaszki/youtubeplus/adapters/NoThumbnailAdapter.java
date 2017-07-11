@@ -27,7 +27,7 @@ import java.util.List;
  * Created by PawelPaszki on 07/07/2017.
  */
 
-public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.ViewHolder> implements View.OnClickListener
+public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.ViewHolder>
          {
 
     private static final String TAG = "SMEDIC";
@@ -84,17 +84,7 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
             }
         });
         if(mFragment.equals("downloadedFragment")) {
-            if(checkMediaType(video) != null) {
-                switch (checkMediaType(video)){
-                    case "audio":
-                        Resources res = context.getResources();
-                        Drawable audio = res.getDrawable(R.drawable.ic_audio);
-                        holder.additionalItem.setImageDrawable(audio);
-                        break;
-                    case "video":
-                        break;
-                }
-            }
+            holder.additionalItem.setVisibility(View.GONE);
         } else {
             holder.additionalItem.bringToFront();
             holder.additionalItem.setClickable(true);
@@ -117,14 +107,6 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
     @Override
     public int getItemCount() {
         return (null != list ? list.size() : 0);
-    }
-
-    @Override
-    public void onClick(View v) {
-        if (itemEventsListener != null) {
-            YouTubeVideo item = (YouTubeVideo) v.getTag();
-            itemEventsListener.onItemClick(item);
-        }
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {

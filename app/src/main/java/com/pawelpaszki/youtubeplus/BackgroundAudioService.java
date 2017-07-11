@@ -185,7 +185,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         handleIntent(intent);
-        return super.onStartCommand(intent, flags, startId);
+        return START_STICKY;
     }
 
     private void initPhoneCallListener() {
@@ -778,19 +778,19 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     private YtFile getBestStream(SparseArray<YtFile> ytFiles) {
 
         connectionQuality = ConnectionClassManager.getInstance().getCurrentBandwidthQuality();
-        int[] itags = new int[]{251, 141, 140, 17};
+        int[] itags = new int[]{22, 18, 36, 17};
 
         if (connectionQuality != null && connectionQuality != ConnectionQuality.UNKNOWN) {
             switch (connectionQuality) {
                 case POOR:
-                    itags = new int[]{17, 140, 251, 141};
+                    itags = new int[]{17, 36, 18, 22};
                     break;
                 case MODERATE:
-                    itags = new int[]{251, 141, 140, 17};
+                    itags = new int[]{36, 18, 22, 17};
                     break;
                 case GOOD:
                 case EXCELLENT:
-                    itags = new int[]{141, 251, 140, 17};
+                    itags = new int[]{22, 18, 36, 17};
                     break;
             }
         }

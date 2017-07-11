@@ -25,6 +25,7 @@ import android.util.Log;
 
 import com.pawelpaszki.youtubeplus.model.YouTubePlaylist;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
+import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
 
 import java.util.ArrayList;
 
@@ -38,7 +39,7 @@ public class YouTubeSqlDb {
     private static final String DATABASE_NAME = "YouTubeDb.db";
 
     public static final String RECENTLY_WATCHED_TABLE_NAME = "recently_watched_videos";
-    public static final String CUSTOM_TABLE_NAME = "favorites_videos";
+    public static final String CUSTOM_TABLE_NAME = "custom_videos";
     public static final String DOWNLOADED_TABLE_NAME = "downloaded_videos";
     private static final String TAG = "SMEDIC TABLE SQL";
 
@@ -48,7 +49,7 @@ public class YouTubeSqlDb {
 
     private Playlists playlists;
     private Videos recentlyWatchedVideos;
-    private Videos favoriteVideos;
+    private Videos customVideos;
     private Videos downloadedVideos;
 
     private static YouTubeSqlDb ourInstance = new YouTubeSqlDb();
@@ -66,13 +67,13 @@ public class YouTubeSqlDb {
 
         playlists = new Playlists();
         recentlyWatchedVideos = new Videos(RECENTLY_WATCHED_TABLE_NAME);
-        favoriteVideos = new Videos(CUSTOM_TABLE_NAME);
+        customVideos = new Videos(CUSTOM_TABLE_NAME);
         downloadedVideos = new Videos(DOWNLOADED_TABLE_NAME);
     }
 
     public Videos videos(VIDEOS_TYPE type) {
         if (type == VIDEOS_TYPE.CUSTOM) {
-            return favoriteVideos;
+            return customVideos;
         } else if (type == VIDEOS_TYPE.RECENTLY_WATCHED) {
             return recentlyWatchedVideos;
         } else if (type == VIDEOS_TYPE.DOWNLOADED) {
@@ -171,7 +172,7 @@ public class YouTubeSqlDb {
          *
          * @return
          */
-        public ArrayList<YouTubeVideo> readAll() {
+        public ArrayList<YouTubeVideo> readAll(String playListName, Context context) {
 
             final String SELECT_QUERY_ORDER_DESC = "SELECT * FROM " + tableName + " ORDER BY "
                     + YouTubeVideoEntry.COLUMN_ENTRY_ID + " DESC";
@@ -186,7 +187,9 @@ public class YouTubeSqlDb {
                 String duration = c.getString(c.getColumnIndexOrThrow(YouTubeVideoEntry.COLUMN_DURATION));
                 String thumbnailUrl = c.getString(c.getColumnIndexOrThrow(YouTubeVideoEntry.COLUMN_THUMBNAIL_URL));
                 String viewsNumber = c.getString(c.getColumnIndexOrThrow(YouTubeVideoEntry.COLUMN_VIEWS_NUMBER));
-                list.add(new YouTubeVideo(videoId, title, thumbnailUrl, duration, viewsNumber));
+                if(playListName == null || (SharedPrefs.getPlaylistVideoIds(context, playListName).contains(c.getString(c.getColumnIndexOrThrow(YouTubeVideoEntry.COLUMN_VIDEO_ID))))) {
+                    list.add(new YouTubeVideo(videoId, title, thumbnailUrl, duration, viewsNumber));
+                }
             }
             c.close();
             return list;
@@ -198,9 +201,36 @@ public class YouTubeSqlDb {
          * @param videoId
          * @return
          */
-        public boolean delete(String videoId) {
-            return dbHelper.getWritableDatabase().delete(tableName,
-                    YouTubeVideoEntry.COLUMN_VIDEO_ID + "='" + videoId + "'", null) > 0;
+        public boolean delete(String videoId, String type, Context context) {
+            if(!type.equals(VIDEOS_TYPE.CUSTOM)) {
+                return dbHelper.getWritableDatabase().delete(tableName,
+                        YouTubeVideoEntry.COLUMN_VIDEO_ID + "='" + videoId + "'", null) > 0;
+            } else if (type.equals(VIDEOS_TYPE.CUSTOM)) {
+                SharedPrefs.setVideoCounter(videoId, SharedPrefs.getVideoCounter(videoId, context) - 1, context);
+                if(SharedPrefs.getVideoCounter(videoId, context) == 0) {
+                    return dbHelper.getWritableDatabase().delete(tableName,
+                            YouTubeVideoEntry.COLUMN_VIDEO_ID + "='" + videoId + "'", null) > 0;
+                }
+            }
+            return true;
+        }
+
+        /**
+         * Deletes single custom playlist and its entries
+         *
+         * @param videoIds - ids to remove
+         * @param context
+         * @return
+         */
+        public boolean deleteCustomPlayList(ArrayList<String> videoIds, Context context) {
+            for(String videoId: videoIds) {
+                SharedPrefs.setVideoCounter(videoId, SharedPrefs.getVideoCounter(videoId, context) - 1, context);
+                if(SharedPrefs.getVideoCounter(videoId, context) == 0) {
+                    return dbHelper.getWritableDatabase().delete(tableName,
+                            YouTubeVideoEntry.COLUMN_VIDEO_ID + "='" + videoId + "'", null) > 0;
+                }
+            }
+            return true;
         }
 
         /**

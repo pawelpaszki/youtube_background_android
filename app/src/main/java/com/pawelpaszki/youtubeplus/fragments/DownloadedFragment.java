@@ -3,10 +3,12 @@ package com.pawelpaszki.youtubeplus.fragments;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -32,6 +34,8 @@ import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
 
 import java.io.File;
 import java.util.ArrayList;
+
+import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlaylistSelectionDialog;
 
 /**
  * Created by PawelPaszki on 04/07/2017.
@@ -82,7 +86,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     public void onResume() {
         super.onResume();
         downloadedVideos.clear();
-        downloadedVideos.addAll(YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).readAll());
+        downloadedVideos.addAll(YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).readAll(null, context));
         videoListAdapter.notifyDataSetChanged();
     }
 
@@ -114,15 +118,16 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 break;
             }
         }
-        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).delete(video.getId());
+        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).delete(video.getId(), YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED.toString(), context);
         videoListAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onAddClicked(YouTubeVideo video) {
-        Log.i("add clicked","true");
-        //TODO
+        Log.i("add clicked","download fragment");
+        showPlaylistSelectionDialog(context, video);
     }
+
 
     @Override
     public void onItemClick(YouTubeVideo video) {
@@ -140,7 +145,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                     Toast.LENGTH_SHORT).show();
         } else {
             downloadedVideos.remove(video);
-            YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).delete(video.getId());
+            YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).delete(video.getId(), YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED.toString(), context);
             videoListAdapter.notifyDataSetChanged();
             Toast.makeText(YTApplication.getAppContext(), "Unable to find media",
                     Toast.LENGTH_SHORT).show();
