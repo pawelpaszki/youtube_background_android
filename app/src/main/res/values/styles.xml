@@ -16,7 +16,10 @@
         <item name="android:spinnerStyle">@style/Widget.App.Spinner</item>
     </style>
     <style name="seekBarColor">
-        <item name="colorAccent">@color/colorAccent</item> <!-- Whatever color you want-->
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:progressDrawable">@drawable/custom_seekbar</item>
+        <item name="android:minHeight">5dip</item>
+        <item name="android:maxHeight">8dip</item>
     </style>
     <style name="Widget.App.Spinner" parent="@style/Widget.AppCompat.Spinner">
         <item name="overlapAnchor">true</item>

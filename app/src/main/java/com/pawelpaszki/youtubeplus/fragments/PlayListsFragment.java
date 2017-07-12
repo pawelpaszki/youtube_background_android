@@ -29,6 +29,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -103,8 +104,36 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
         LinearLayout videosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videosContainer.getLayoutParams();
         float density = context.getResources().getDisplayMetrics().density;
-        params.topMargin = height + (int) (6 * density);
+        int topMargin = height + (int) (6 * density);
+        params.topMargin = topMargin;
+
         videosContainer.setLayoutParams(params);
+//
+//        videosContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+//            @Override
+//            public void onGlobalLayout() {
+//                int seekBarHeight = videosContainer.findViewById(R.id.seekBar).getHeight();
+//                int controlsHeight = mHomeContainer.findViewById(R.id.controls).getHeight();
+//                DisplayMetrics displayMetrics = new DisplayMetrics();
+//                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+//                int height = displayMetrics.heightPixels;
+//                int width = displayMetrics.widthPixels;
+//                Log.i("seekBarHeight"," " + seekBarHeight);
+//                Log.i("height"," " + height);
+//                Log.i("controlsHeight"," " + controlsHeight);
+//                TypedValue tv = new TypedValue();
+//                int aHeight;
+//                if (getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
+//                    aHeight = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
+//                } else {
+//                    float density = getResources().getDisplayMetrics().density;
+//                    aHeight = (int) (30 * density);
+//                }
+//                float density = getResources().getDisplayMetrics().density;
+//                viewPager.getLayoutParams().height = (int) ((int) (height - (int) aHeight * density) - 12 * density) - controlsHeight - seekBarHeight;
+//
+//            }
+//        });
 
         final LinearLayout playListManagement = (LinearLayout) v.findViewById(R.id.playlist_management);
 
