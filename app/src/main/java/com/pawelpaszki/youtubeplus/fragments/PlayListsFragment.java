@@ -98,7 +98,7 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
             height = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
         } else {
             float density = getResources().getDisplayMetrics().density;
-            height = (int) (30 * density);
+            height = (int) (50 * density);
         }
         LinearLayout videosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videosContainer.getLayoutParams();
