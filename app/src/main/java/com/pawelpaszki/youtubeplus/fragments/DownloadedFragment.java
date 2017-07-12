@@ -73,13 +73,15 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         View v = inflater.inflate(R.layout.fragment_list, container, false);
         LinearLayout spinner = (LinearLayout) v.findViewById(R.id.playlist_management);
         spinner.setVisibility(View.GONE);
+        LinearLayout deleteRecent = (LinearLayout) v.findViewById(R.id.delete_recent_container);
+        deleteRecent.setVisibility(View.GONE);
         TypedValue tv = new TypedValue();
         int height;
         if (context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
             height = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
         } else {
             float density = getResources().getDisplayMetrics().density;
-            height = (int) (30 * density);
+            height = (int) (50 * density);
         }
         LinearLayout videosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videosContainer.getLayoutParams();

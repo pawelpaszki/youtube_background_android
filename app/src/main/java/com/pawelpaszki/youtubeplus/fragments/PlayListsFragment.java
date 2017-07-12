@@ -32,6 +32,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -144,8 +145,6 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
         ImageView deletePlayList = (ImageView) playListManagement.findViewById(R.id.remove_playlist_button);
         ImageView addPlayList = (ImageView) playListManagement.findViewById(R.id.add_playlist_button);
 
-
-
         mSpinner = (Spinner) v.findViewById(R.id.playlist_spinner);
         if(SharedPrefs.getPlayListNames(context) != null) {
             String[] data = new String[SharedPrefs.getPlayListNames(context).size()];
@@ -167,6 +166,8 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
 
             }
         });
+        LinearLayout deleteRecent = (LinearLayout) v.findViewById(R.id.delete_recent_container);
+        deleteRecent.setVisibility(View.GONE);
 
         deletePlayList.setOnClickListener(new AdapterView.OnClickListener() {
             @Override

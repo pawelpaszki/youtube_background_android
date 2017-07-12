@@ -25,6 +25,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -88,7 +89,7 @@ public class RecentlyWatchedFragment extends BaseFragment implements
             height = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
         } else {
             float density = getResources().getDisplayMetrics().density;
-            height = (int) (30 * density);
+            height = (int) (50 * density);
         }
         LinearLayout videosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videosContainer.getLayoutParams();
@@ -100,6 +101,16 @@ public class RecentlyWatchedFragment extends BaseFragment implements
         videoListAdapter = new VideosAdapter(context, recentlyPlayedVideos, "recentlyWatched");
         videoListAdapter.setOnItemEventsListener(this);
         recentlyPlayedListView.setAdapter(videoListAdapter);
+
+        Button clearRecentButton = (Button) v.findViewById(R.id.clear_recent);
+        clearRecentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                recentlyPlayedVideos.clear();
+                YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).deleteAll();
+                videoListAdapter.notifyDataSetChanged();
+            }
+        });
 
         //disable swipe to refresh for this tab
         v.findViewById(R.id.swipe_to_refresh).setEnabled(false);

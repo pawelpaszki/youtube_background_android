@@ -15,7 +15,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="74"
-            android:background="@drawable/spinner_item_background"
+            android:background="@drawable/item_background"
             android:drawSelectorOnTop="true"
             android:dropDownWidth="wrap_content"
             android:popupBackground="#000"
@@ -59,6 +59,39 @@
                 android:background="@android:drawable/ic_menu_add" />
 
         </RelativeLayout>
+    </LinearLayout>
+
+    <LinearLayout android:layout_height="40dp"
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:weightSum="100"
+        android:clickable="true"
+        android:id="@+id/delete_recent_container">
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="5"
+
+            android:orientation="horizontal">
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/clear_recent"
+            android:layout_weight="90"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:text="clear list"
+            android:background="@drawable/item_background"
+            android:textColor="#980000"
+            android:textSize="20sp"/>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="5"
+            android:id="@+id/empty_right_fill"
+            android:orientation="horizontal">
+        </LinearLayout>
+
     </LinearLayout>
 
     <LinearLayout

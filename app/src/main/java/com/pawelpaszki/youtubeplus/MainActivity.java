@@ -367,7 +367,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                     }
                 }
             }
-        }, 20);
+        }, 1);
 
     }
 

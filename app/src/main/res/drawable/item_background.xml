@@ -2,12 +2,4 @@
     <stroke android:width="2dp" android:color="#980000"/>
     <solid android:color="@android:color/black" />
 
-    <item>
-        <bitmap
-            android:gravity="center_vertical|right"
-            android:src="@drawable/ic_dropdown"
-            android:tint="@color/colorPrimaryDark"
-            />
-    </item>
-
 </shape>

@@ -85,6 +85,8 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
         View v = inflater.inflate(R.layout.fragment_list, container, false);
         LinearLayout spinner = (LinearLayout) v.findViewById(R.id.playlist_management);
         spinner.setVisibility(View.GONE);
+        LinearLayout deleteRecent = (LinearLayout) v.findViewById(R.id.delete_recent_container);
+        deleteRecent.setVisibility(View.GONE);
         LinearLayout videosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videosContainer.getLayoutParams();
         float density = context.getResources().getDisplayMetrics().density;
