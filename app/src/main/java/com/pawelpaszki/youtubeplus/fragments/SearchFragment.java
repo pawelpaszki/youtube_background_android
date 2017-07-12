@@ -25,6 +25,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
@@ -84,6 +85,11 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
         View v = inflater.inflate(R.layout.fragment_list, container, false);
         LinearLayout spinner = (LinearLayout) v.findViewById(R.id.playlist_management);
         spinner.setVisibility(View.GONE);
+        LinearLayout videosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videosContainer.getLayoutParams();
+        float density = context.getResources().getDisplayMetrics().density;
+        params.topMargin = (int) (6 * density);
+        videosContainer.setLayoutParams(params);
         videosFoundListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         videosFoundListView.setLayoutManager(new LinearLayoutManager(context));
         loadingProgressBar = (ProgressBar) v.findViewById(R.id.fragment_progress_bar);

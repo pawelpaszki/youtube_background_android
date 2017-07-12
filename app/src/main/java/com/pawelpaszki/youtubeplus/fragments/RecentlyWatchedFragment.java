@@ -21,9 +21,11 @@ import android.os.Environment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -80,6 +82,19 @@ public class RecentlyWatchedFragment extends BaseFragment implements
         View v = inflater.inflate(R.layout.fragment_list, container, false);
         LinearLayout spinner = (LinearLayout) v.findViewById(R.id.playlist_management);
         spinner.setVisibility(View.GONE);
+        TypedValue tv = new TypedValue();
+        int height;
+        if (context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
+            height = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
+        } else {
+            float density = getResources().getDisplayMetrics().density;
+            height = (int) (30 * density);
+        }
+        LinearLayout videosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videosContainer.getLayoutParams();
+        float density = context.getResources().getDisplayMetrics().density;
+        params.topMargin = height + (int) (6 * density);
+        videosContainer.setLayoutParams(params);
         recentlyPlayedListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         recentlyPlayedListView.setLayoutManager(new LinearLayoutManager(context));
         videoListAdapter = new VideosAdapter(context, recentlyPlayedVideos, "recentlyWatched");

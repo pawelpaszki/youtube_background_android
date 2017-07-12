@@ -45,6 +45,7 @@ import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.GestureDetector;
@@ -53,9 +54,12 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
@@ -150,6 +154,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private GestureDetectorCompat mGestureDetector;
     private boolean mControlsVisible;
     private FloatingActionButton mHideControls;
+    private RelativeLayout mHomeContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -166,8 +171,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         minimiseToolbar();
 
         mGestureDetector = new GestureDetectorCompat(this, new MyGestureListener());
-        RelativeLayout home = (RelativeLayout) findViewById(R.id.main_container);
-        home.setOnTouchListener(new View.OnTouchListener() {
+        mHomeContainer = (RelativeLayout) findViewById(R.id.main_container);
+        mHomeContainer.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 mGestureDetector.onTouchEvent(event);
@@ -199,6 +204,32 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             }
         });
         setupViewPager(viewPager);
+
+//        mHomeContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+//            @Override
+//            public void onGlobalLayout() {
+//                int seekBarHeight = mHomeContainer.findViewById(R.id.seekBar).getHeight();
+//                int controlsHeight = mHomeContainer.findViewById(R.id.controls).getHeight();
+//                DisplayMetrics displayMetrics = new DisplayMetrics();
+//                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+//                int height = displayMetrics.heightPixels;
+//                int width = displayMetrics.widthPixels;
+//                Log.i("seekBarHeight"," " + seekBarHeight);
+//                Log.i("height"," " + height);
+//                Log.i("controlsHeight"," " + controlsHeight);
+//                TypedValue tv = new TypedValue();
+//                int aHeight;
+//                if (getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
+//                    aHeight = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
+//                } else {
+//                    float density = getResources().getDisplayMetrics().density;
+//                    aHeight = (int) (30 * density);
+//                }
+//                float density = getResources().getDisplayMetrics().density;
+//                viewPager.getLayoutParams().height = (int) ((int) (height - (int) aHeight * density) - 12 * density) - controlsHeight - seekBarHeight;
+//
+//            }
+//        });
 
         networkConf = new NetworkConf(this);
 
@@ -347,21 +378,25 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         if (getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
             height = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
         } else {
-            height = 60;
+            float density = getResources().getDisplayMetrics().density;
+            height = (int) (30 * density);
         }
-        for (int i = 10, j = 1; i > 0; i--, j++) {
-            final int k = i;
-            final int newHeight = height;
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    ViewGroup.LayoutParams params = toolbar.getLayoutParams();
-                    params.height = newHeight / k;
-                    toolbar.setLayoutParams(params);
-                }
-            }, j * 5);
-        }
+//        for (int i = 10, j = 1; i > 0; i--, j++) {
+//            final int k = i;
+//            final int newHeight = height;
+//            Handler handler = new Handler();
+//            handler.postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    ViewGroup.LayoutParams params = toolbar.getLayoutParams();
+//                    params.height = newHeight / k;
+//                    toolbar.setLayoutParams(params);
+//                }
+//            }, j * 5);
+//        }
+        ViewGroup.LayoutParams params = toolbar.getLayoutParams();
+        params.height = height;
+        toolbar.setLayoutParams(params);
 
     }
 
@@ -452,16 +487,13 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             SharedPrefs.setIsLooping(!isLooping, this);
             isLooping = !isLooping;
         }
-        Resources res = getResources();
 
-        Drawable icon;
         if(isLooping) {
-            icon = res.getDrawable(R.drawable.ic_loop_selected);
+            mLoopVideo.setColorFilter(Color.argb(0, 0, 0, 0));
         } else {
-            icon = res.getDrawable(R.drawable.ic_loop);
+            mLoopVideo.setColorFilter(Color.argb(255, 255, 255, 255));
         }
-        mLoopVideo.setImageDrawable(icon);
-        //Log.i("is looping", String.valueOf(SharedPrefs.getIsLooping(MainActivity.this)));
+        Log.i("is looping", String.valueOf(SharedPrefs.getIsLooping(MainActivity.this)));
 
     }
 
@@ -526,7 +558,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 mDurationSeekbar.setMax(videoDuration);
                 setControlsVisible(true);
                 Resources res = getResources();
-                Drawable pause = res.getDrawable(android.R.drawable.ic_media_pause);
+                Drawable pause = res.getDrawable(R.drawable.ic_pause);
                 mPlay.setImageDrawable(pause);
                 setControlsEnabled(true);
                 mIsPlaying = true;
@@ -693,7 +725,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
     private void setPlayIconAndDisableControls(boolean disable) {
         Resources res = getResources();
-        Drawable play = res.getDrawable(android.R.drawable.ic_media_play);
+        Drawable play = res.getDrawable(R.drawable.ic_play);
         mPlay.setImageDrawable(play);
         if(disable) {
             setControlsEnabled(false);
@@ -702,7 +734,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
     private void setPauseIcon() {
         Resources res = getResources();
-        Drawable pause = res.getDrawable(android.R.drawable.ic_media_pause);
+        Drawable pause = res.getDrawable(R.drawable.ic_pause);
         mPlay.setImageDrawable(pause);
     }
 

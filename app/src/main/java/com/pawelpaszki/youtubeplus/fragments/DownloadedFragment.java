@@ -12,9 +12,11 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -71,6 +73,19 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         View v = inflater.inflate(R.layout.fragment_list, container, false);
         LinearLayout spinner = (LinearLayout) v.findViewById(R.id.playlist_management);
         spinner.setVisibility(View.GONE);
+        TypedValue tv = new TypedValue();
+        int height;
+        if (context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
+            height = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
+        } else {
+            float density = getResources().getDisplayMetrics().density;
+            height = (int) (30 * density);
+        }
+        LinearLayout videosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videosContainer.getLayoutParams();
+        float density = context.getResources().getDisplayMetrics().density;
+        params.topMargin = height + (int) (6 * density);
+        videosContainer.setLayoutParams(params);
         downloadedListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         downloadedListView.setLayoutManager(new LinearLayoutManager(context));
         videoListAdapter = new NoThumbnailAdapter(context, downloadedVideos, "downloadedFragment");
@@ -150,7 +165,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             Toast.makeText(YTApplication.getAppContext(), "Unable to find media",
                     Toast.LENGTH_SHORT).show();
         }
-
+        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).create(video);
     }
 
     @Override

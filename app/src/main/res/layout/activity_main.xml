@@ -109,8 +109,7 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:padding="0dp"
-                android:src="@android:drawable/ic_media_previous"
-                android:tint="@color/colorPrimaryDark"/>
+                android:src="@drawable/ic_previous"/>
 
             <ImageView
                 android:id="@+id/play"
@@ -119,8 +118,7 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:padding="0dp"
-                android:src="@android:drawable/ic_media_play"
-                android:tint="@color/colorPrimaryDark"/>
+                android:src="@drawable/ic_play"/>
 
             <ImageView
                 android:id="@+id/next"
@@ -129,8 +127,7 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:padding="0dp"
-                android:src="@android:drawable/ic_media_next"
-                android:tint="@color/colorPrimaryDark"/>
+                android:src="@drawable/ic_next"/>
 
             <ImageView
                 android:id="@+id/loop"
@@ -139,8 +136,8 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:padding="0dp"
-                android:src="@drawable/ic_loop"
-                android:tint="@color/colorPrimaryDark"/>
+                android:src="@drawable/ic_repeat"
+                android:tint="#FFEBEE"/>
         </LinearLayout>
 
 </RelativeLayout>

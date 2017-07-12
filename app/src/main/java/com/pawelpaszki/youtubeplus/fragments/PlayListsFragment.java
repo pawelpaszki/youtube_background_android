@@ -25,6 +25,7 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -91,10 +92,18 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
         View v = inflater.inflate(R.layout.fragment_list, container, false);
         playListsView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         playListsView.setLayoutManager(new LinearLayoutManager(context));
+        TypedValue tv = new TypedValue();
+        int height;
+        if (context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
+            height = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
+        } else {
+            float density = getResources().getDisplayMetrics().density;
+            height = (int) (30 * density);
+        }
         LinearLayout videosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videosContainer.getLayoutParams();
         float density = context.getResources().getDisplayMetrics().density;
-        params.topMargin = (int) (30 * density);
+        params.topMargin = height + (int) (6 * density);
         videosContainer.setLayoutParams(params);
 
         final LinearLayout playListManagement = (LinearLayout) v.findViewById(R.id.playlist_management);
@@ -279,7 +288,7 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
             for(String list: playlists) {
                 ArrayList<String> ids = SharedPrefs.getPlaylistVideoIds(context,list);
                 for(String item: ids) {
-                    Log.i("list + item + counter", list + ":" + item + String.valueOf(SharedPrefs.getVideoCounter(item, context)));
+                    Log.i("list + item + counter", list + ": " + item + ": " + String.valueOf(SharedPrefs.getVideoCounter(item, context)));
                 }
             }
         }
