@@ -106,9 +106,11 @@ public class RecentlyWatchedFragment extends BaseFragment implements
         clearRecentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                recentlyPlayedVideos.clear();
-                YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).deleteAll();
-                videoListAdapter.notifyDataSetChanged();
+                if(recentlyPlayedVideos.size() > 0) {
+                    recentlyPlayedVideos.clear();
+                    YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).deleteAll();
+                    videoListAdapter.notifyDataSetChanged();
+                }
             }
         });
 
@@ -141,15 +143,6 @@ public class RecentlyWatchedFragment extends BaseFragment implements
         this.itemSelected = null;
         this.context = null;
     }
-
-    /**
-     * Clears recently played list items
-     */
-    public void clearRecentlyPlayedList() {
-        recentlyPlayedVideos.clear();
-        videoListAdapter.notifyDataSetChanged();
-    }
-
 
     @Override
     public void onRemoveClicked(YouTubeVideo video) {

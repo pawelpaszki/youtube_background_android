@@ -28,7 +28,9 @@ import android.database.MatrixCursor;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
+import android.os.StatFs;
 import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -77,6 +79,7 @@ import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
 import com.pawelpaszki.youtubeplus.viewPagers.NonSwipeableViewPager;
 import com.pawelpaszki.youtubeplus.youtube.SuggestionsLoader;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -352,6 +355,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         }
         mGoToDownloads.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FF8A80")));
         mHideControls.setVisibility(View.GONE);
+
     }
 
     private void setButtonBackgroundTint() {

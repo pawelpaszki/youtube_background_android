@@ -16,6 +16,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -36,6 +37,7 @@ import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlaylistSelectionDialog;
 
@@ -73,8 +75,21 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         View v = inflater.inflate(R.layout.fragment_list, container, false);
         LinearLayout spinner = (LinearLayout) v.findViewById(R.id.playlist_management);
         spinner.setVisibility(View.GONE);
-        LinearLayout deleteRecent = (LinearLayout) v.findViewById(R.id.delete_recent_container);
-        deleteRecent.setVisibility(View.GONE);
+        Button clearRecentButton = (Button) v.findViewById(R.id.clear_recent);
+        clearRecentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(downloadedVideos.size() > 0) {
+                    Iterator<YouTubeVideo> iter = downloadedVideos.iterator();
+
+                    while (iter.hasNext()) {
+                        YouTubeVideo item = iter.next();
+                        iter.remove();
+                        onRemoveClicked(item);
+                    }
+                }
+            }
+        });
         TypedValue tv = new TypedValue();
         int height;
         if (context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {

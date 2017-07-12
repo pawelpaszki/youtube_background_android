@@ -5,6 +5,7 @@ import android.util.Log;
 import com.google.api.services.youtube.model.SearchResult;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
