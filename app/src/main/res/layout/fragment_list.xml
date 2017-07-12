@@ -14,13 +14,19 @@
             android:id="@+id/playlist_spinner"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="80"
+            android:layout_weight="74"
             android:background="@drawable/spinner_item_background"
             android:drawSelectorOnTop="true"
             android:dropDownWidth="wrap_content"
             android:popupBackground="#000"
             android:textAlignment="center"
-            android:textSize="16sp"/>
+            android:textSize="20sp"/>
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:id="@+id/blank_space"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            android:layout_weight="6"/>
         <RelativeLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
