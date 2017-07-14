@@ -27,6 +27,7 @@ import android.content.res.Resources;
 import android.database.MatrixCursor;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -65,6 +66,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.VideoView;
+
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.fragments.DownloadedFragment;
 import com.pawelpaszki.youtubeplus.fragments.PlayListsFragment;
@@ -124,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private PlayListsFragment playListsFragment;
     private DownloadedFragment downloadedFragment;
 
+
     private static final String ACTION_PLAYBACK_STARTED = "playbackStarted";
     public static final String ACTION_PLAY = "action_play";
     public static final String ACTION_PAUSE = "action_pause";
@@ -137,6 +141,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         public void onReceive(Context context, Intent intent) {
             //Log.i("extras", intent.getStringExtra("duration"));
             setDuration(intent.getStringExtra("duration"));
+
         }
     };
 
@@ -208,32 +213,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             }
         });
         setupViewPager(viewPager);
-
-//        mHomeContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-//            @Override
-//            public void onGlobalLayout() {
-//                int seekBarHeight = mHomeContainer.findViewById(R.id.seekBar).getHeight();
-//                int controlsHeight = mHomeContainer.findViewById(R.id.controls).getHeight();
-//                DisplayMetrics displayMetrics = new DisplayMetrics();
-//                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-//                int height = displayMetrics.heightPixels;
-//                int width = displayMetrics.widthPixels;
-//                Log.i("seekBarHeight"," " + seekBarHeight);
-//                Log.i("height"," " + height);
-//                Log.i("controlsHeight"," " + controlsHeight);
-//                TypedValue tv = new TypedValue();
-//                int aHeight;
-//                if (getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
-//                    aHeight = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
-//                } else {
-//                    float density = getResources().getDisplayMetrics().density;
-//                    aHeight = (int) (30 * density);
-//                }
-//                float density = getResources().getDisplayMetrics().density;
-//                viewPager.getLayoutParams().height = (int) ((int) (height - (int) aHeight * density) - 12 * density) - controlsHeight - seekBarHeight;
-//
-//            }
-//        });
 
         networkConf = new NetworkConf(this);
 

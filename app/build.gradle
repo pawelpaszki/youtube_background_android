@@ -44,6 +44,7 @@ dependencies {
     provided fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile(name: 'color_picker_library-release', ext: 'aar')
+    compile 'fm.jiecao:jiecaovideoplayer:5.6'
     compile 'com.android.support:appcompat-v7'
     compile 'com.android.support:design:25.2.0'
     compile 'com.android.support:support-v4:25.2.0'

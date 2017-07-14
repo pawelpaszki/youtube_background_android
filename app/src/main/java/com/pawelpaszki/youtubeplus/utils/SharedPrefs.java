@@ -131,4 +131,18 @@ public class SharedPrefs {
 
     }
 
+    public static void setVideoContainerHeight(Context context, int height) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        String key = "videoContainerHeight";
+        editor.putInt(key, height);
+        editor.apply();
+    }
+
+    public static int getVideoContainerHeight(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String key = "videoContainerHeight";
+        return prefs.getInt(key, 0);
+    }
+
 }

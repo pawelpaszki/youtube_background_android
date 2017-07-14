@@ -6,21 +6,21 @@
     android:layout_height="match_parent"
     android:id="@+id/main_container">
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-        <com.pawelpaszki.youtubeplus.viewPagers.NonSwipeableViewPager
-            android:id="@+id/viewpager"
-            android:layout_width="match_parent"
-            android:layout_height="442dp"
-            android:layout_margin="10dp"
-            android:layout_below="@+id/toolbar"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+    <com.pawelpaszki.youtubeplus.viewPagers.NonSwipeableViewPager
+        android:id="@+id/viewpager"
+        android:layout_width="match_parent"
+        android:layout_height="442dp"
+        android:layout_margin="10dp"
+        android:layout_below="@+id/toolbar"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/downloaded"
@@ -98,48 +98,48 @@
         android:progressDrawable="@drawable/custom_seekbar"
         />
 
-        <LinearLayout
-            android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/controls">
+
+        <ImageView
+            android:id="@+id/previous"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:id="@+id/controls">
+            android:layout_weight="1"
+            android:gravity="center"
+            android:padding="0dp"
+            android:src="@drawable/ic_previous"/>
 
-            <ImageView
-                android:id="@+id/previous"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:padding="0dp"
-                android:src="@drawable/ic_previous"/>
+        <ImageView
+            android:id="@+id/play"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:padding="0dp"
+            android:src="@drawable/ic_play"/>
 
-            <ImageView
-                android:id="@+id/play"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:padding="0dp"
-                android:src="@drawable/ic_play"/>
+        <ImageView
+            android:id="@+id/next"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:padding="0dp"
+            android:src="@drawable/ic_next"/>
 
-            <ImageView
-                android:id="@+id/next"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:padding="0dp"
-                android:src="@drawable/ic_next"/>
-
-            <ImageView
-                android:id="@+id/loop"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:padding="0dp"
-                android:src="@drawable/ic_repeat"
-                android:tint="#FFEBEE"/>
-        </LinearLayout>
+        <ImageView
+            android:id="@+id/loop"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:padding="0dp"
+            android:src="@drawable/ic_repeat"
+            android:tint="#FFEBEE"/>
+    </LinearLayout>
 
 </RelativeLayout>

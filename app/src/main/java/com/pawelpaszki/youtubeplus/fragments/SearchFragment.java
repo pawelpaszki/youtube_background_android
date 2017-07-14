@@ -16,7 +16,10 @@
 package com.pawelpaszki.youtubeplus.fragments;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
@@ -39,6 +42,7 @@ import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 import com.pawelpaszki.youtubeplus.utils.Config;
 import com.pawelpaszki.youtubeplus.utils.MediaDownloader;
 import com.pawelpaszki.youtubeplus.utils.NetworkConf;
+import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
 import com.pawelpaszki.youtubeplus.youtube.YouTubeVideosLoader;
 
 import java.util.ArrayList;
@@ -82,16 +86,27 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View v = inflater.inflate(R.layout.fragment_list, container, false);
+        final View v = inflater.inflate(R.layout.fragment_list, container, false);
         LinearLayout spinner = (LinearLayout) v.findViewById(R.id.playlist_management);
         spinner.setVisibility(View.GONE);
         LinearLayout deleteRecent = (LinearLayout) v.findViewById(R.id.delete_recent_container);
         deleteRecent.setVisibility(View.GONE);
-        LinearLayout videosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
-        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videosContainer.getLayoutParams();
-        float density = context.getResources().getDisplayMetrics().density;
-        params.topMargin = (int) (6 * density);
-        videosContainer.setLayoutParams(params);
+
+        int videoContainerHeight = SharedPrefs.getVideoContainerHeight(context);
+        if(videoContainerHeight == 0) {
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    int height = SharedPrefs.getVideoContainerHeight(context);
+                    resizeVideoContainer(v, height);
+                }
+            }, 100);
+        } else {
+            resizeVideoContainer(v, videoContainerHeight);
+        }
+
+
         videosFoundListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         videosFoundListView.setLayoutManager(new LinearLayoutManager(context));
         loadingProgressBar = (ProgressBar) v.findViewById(R.id.fragment_progress_bar);
@@ -102,6 +117,16 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
         //disable swipe to refresh for this tab
         v.findViewById(R.id.swipe_to_refresh).setEnabled(false);
         return v;
+    }
+
+    private void resizeVideoContainer(View v, int height) {
+        Log.i("resized height", String.valueOf(height));
+        LinearLayout videosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videosContainer.getLayoutParams();
+        float density = context.getResources().getDisplayMetrics().density;
+        params.topMargin = (int) (6 * density);
+        params.height = height;
+        videosContainer.setLayoutParams(params);
     }
 
     @Override

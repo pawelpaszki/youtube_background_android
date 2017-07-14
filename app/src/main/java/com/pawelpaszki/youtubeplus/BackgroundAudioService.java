@@ -19,20 +19,25 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.RemoteException;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.support.v4.media.RatingCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -41,7 +46,10 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.LayoutInflater;
 import android.view.Surface;
+import android.view.SurfaceView;
+import android.widget.FrameLayout;
 import android.widget.MediaController;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -60,11 +68,13 @@ import com.squareup.picasso.Target;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 import at.huber.youtubeExtractor.VideoMeta;
 import at.huber.youtubeExtractor.YouTubeExtractor;
 import at.huber.youtubeExtractor.YtFile;
+import fm.jiecao.jcvideoplayer_lib.JCVideoPlayerStandard;
 
 /**
  * Service class for background youtube playback
@@ -612,13 +622,15 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         startMediaPlayerWithLocalMedia(filename);
     }
 
+    private VideoView videoView;
+
     private void startMediaPlayerWithLocalMedia(String filename){
         Log.i("got here", "start local");
         try {
             if (mMediaPlayer != null) {
                 stopPlayer();
 
-                File[] files =Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
+                final File[] files =Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
                 int index = -1;
                 for(int i = 0; i < files.length; i++) {
                     if(files[i].getAbsolutePath().toString().contains(filename)) {
@@ -633,12 +645,18 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                     mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                     Log.i("duration", String.valueOf(mMediaPlayer.getDuration()));
                     mMediaPlayer.setOnCompletionListener(this);
-
+                    final int anIndex = index;
                     mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                         @Override
                         public void onPrepared(MediaPlayer mp) {
                             mMediaPlayer.start();
+
                             handleSeekBarChange();
+//                            FrameLayout container = null;
+//                            LayoutInflater inflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//                            container = (FrameLayout) inflater.inflate(R.layout.fragment_list, null);
+//                            SurfaceView surfaceView = (SurfaceView) container.findViewById(R.id.surfaceView);
+
                             sendBroadcast(videoItem.getDuration());
                             Log.i("media started", "true");
                             Log.i("is playing", String.valueOf(mMediaPlayer.isPlaying()));
