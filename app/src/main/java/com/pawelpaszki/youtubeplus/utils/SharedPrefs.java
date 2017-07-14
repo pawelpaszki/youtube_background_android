@@ -145,4 +145,18 @@ public class SharedPrefs {
         return prefs.getInt(key, 0);
     }
 
+    public static void setVideoContainerWidth(Context context, int width) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        String key = "videoContainerWidth";
+        editor.putInt(key, width);
+        editor.apply();
+    }
+
+    public static int getVideoContainerWidth(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String key = "videoContainerWidth";
+        return prefs.getInt(key, 0);
+    }
+
 }

@@ -114,7 +114,9 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
                 @Override
                 public void onGlobalLayout() {
                     int containerHeight = videosContainer.getHeight();
+                    int containerWidth = videosContainer.getWidth();
                     SharedPrefs.setVideoContainerHeight(context, containerHeight);
+                    SharedPrefs.setVideoContainerWidth(context, containerWidth);
                     Log.i("Container height", String.valueOf(containerHeight));
                     videosContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
                 }

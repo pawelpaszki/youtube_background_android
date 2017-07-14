@@ -25,7 +25,10 @@ import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.database.MatrixCursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -51,13 +54,17 @@ import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Display;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.inputmethod.InputMethodManager;
@@ -170,7 +177,13 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Window window = getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+
         YouTubeSqlDb.getInstance().init(this);
+
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -369,19 +382,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             float density = getResources().getDisplayMetrics().density;
             height = (int) (30 * density);
         }
-//        for (int i = 10, j = 1; i > 0; i--, j++) {
-//            final int k = i;
-//            final int newHeight = height;
-//            Handler handler = new Handler();
-//            handler.postDelayed(new Runnable() {
-//                @Override
-//                public void run() {
-//                    ViewGroup.LayoutParams params = toolbar.getLayoutParams();
-//                    params.height = newHeight / k;
-//                    toolbar.setLayoutParams(params);
-//                }
-//            }, j * 5);
-//        }
+
         ViewGroup.LayoutParams params = toolbar.getLayoutParams();
         params.height = height;
         toolbar.setLayoutParams(params);
@@ -420,7 +421,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                             showNavigationButtons();
                             //TODO show buttons
                         } else {
-                            Log.i("swipe", "left");
                             return false;
                         }
                     }

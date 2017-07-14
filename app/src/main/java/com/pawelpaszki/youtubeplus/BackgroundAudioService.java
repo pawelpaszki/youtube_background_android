@@ -92,6 +92,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     public static final String ACTION_STOP = "action_stop";
     public static final String ACTION_SEEK = "action_seek";
     public static final String ACTION_SEEKBAR_UPDATE = "action_update";
+    public static final String ACITON_VIDEO_CHANGE = "action_change_media";
 
     private Handler mSeekBarProgressHandler;
     private boolean mPreviousPressed;
@@ -262,7 +263,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         Log.i("media type", String.valueOf(mediaType));
         if (action.equalsIgnoreCase(ACTION_PLAY)) {
             handleMedia(intent);
-            handleSeekBarChange();
+            handleSeekBarChange(videoItem.getId());
             mController.getTransportControls().play();
         } else if (action.equalsIgnoreCase(ACTION_PAUSE)) {
             mController.getTransportControls().pause();
@@ -274,7 +275,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                 if(SharedPrefs.getIsLooping(getApplicationContext())) {
                     seekVideo(0);
                     mSetSeekToPosition = 0;
-                    handleSeekBarChange();
+                    handleSeekBarChange(videoItem.getId());
                 } else {
                     mController.getTransportControls().skipToPrevious();
                 }
@@ -293,11 +294,11 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
             seekVideo(value * 1000);
 
             mSetSeekToPosition = value * 1000;
-            handleSeekBarChange();
+            handleSeekBarChange(videoItem.getId());
         }
     }
 
-    private void handleSeekBarChange() {
+    private void handleSeekBarChange(final String videoId) {
         if(mSeekBarProgressHandler != null) {
             mSeekBarProgressHandler.removeCallbacksAndMessages(null);
             mSeekBarProgressHandler = null;
@@ -312,6 +313,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                             if(mSetSeekToPosition != mMediaPlayer.getCurrentPosition() * 1000) {
                                 Intent new_intent = new Intent();
                                 new_intent.setAction(ACTION_SEEKBAR_UPDATE);
+                                new_intent.putExtra("videoId", videoId);
                                 new_intent.putExtra("progress", mMediaPlayer.getCurrentPosition() / 1000);
                                 sendBroadcast(new_intent);
                                 mSeekToSet = false;
@@ -624,7 +626,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 
     private VideoView videoView;
 
-    private void startMediaPlayerWithLocalMedia(String filename){
+    private void startMediaPlayerWithLocalMedia(final String filename){
         Log.i("got here", "start local");
         try {
             if (mMediaPlayer != null) {
@@ -651,16 +653,13 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                         public void onPrepared(MediaPlayer mp) {
                             mMediaPlayer.start();
 
-                            handleSeekBarChange();
-//                            FrameLayout container = null;
-//                            LayoutInflater inflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//                            container = (FrameLayout) inflater.inflate(R.layout.fragment_list, null);
-//                            SurfaceView surfaceView = (SurfaceView) container.findViewById(R.id.surfaceView);
+                            handleSeekBarChange(filename);
 
                             sendBroadcast(videoItem.getDuration());
-                            Log.i("media started", "true");
-                            Log.i("is playing", String.valueOf(mMediaPlayer.isPlaying()));
-                            Log.i("videos",youTubeVideos.toString());
+                            Intent new_intent = new Intent();
+                            new_intent.setAction(ACITON_VIDEO_CHANGE);
+                            new_intent.putExtra("videoId", filename);
+                            sendBroadcast(new_intent);
                         }
                     });
 
@@ -848,7 +847,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                         mMediaPlayer.prepare();
                         mMediaPlayer.start();
-                        handleSeekBarChange();
+                        handleSeekBarChange(videoItem.getId());
                         sendBroadcast(videoItem.getDuration());
                     }
                 } catch (IOException io) {

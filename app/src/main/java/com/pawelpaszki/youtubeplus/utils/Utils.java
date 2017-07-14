@@ -1,6 +1,10 @@
 package com.pawelpaszki.youtubeplus.utils;
 
+import android.content.Context;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
+import android.view.WindowManager;
 
 import com.google.api.services.youtube.model.SearchResult;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;

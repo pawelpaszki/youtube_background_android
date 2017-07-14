@@ -4,6 +4,7 @@
     android:background="@drawable/background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     android:id="@+id/main_container">
 
     <android.support.v7.widget.Toolbar
@@ -86,6 +87,23 @@
         app:backgroundTint="@android:color/transparent"
         app:elevation="0dp"
         app:rippleColor="@android:color/transparent" />
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/seekBar"
+        android:layout_gravity = "center"
+        android:background="#20000000"
+        android:textColor="#fff"
+        android:textSize="16sp"
+        android:singleLine="true"
+        android:ellipsize="marquee"
+        android:focusableInTouchMode="true"
+        android:scrollHorizontally="true"
+        android:marqueeRepeatLimit ="marquee_forever"
+        android:focusable="true"
+        />
 
     <SeekBar
         android:id="@+id/seekBar"
