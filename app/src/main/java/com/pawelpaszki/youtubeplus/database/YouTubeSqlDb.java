@@ -62,7 +62,7 @@ public class YouTubeSqlDb {
     }
 
     public void init(Context context) {
-        dbHelper = new YouTubeDbHelper(context);
+        dbHelper = YouTubeDbHelper.getInstance(context);
         dbHelper.getWritableDatabase();
 
         playlists = new Playlists();
@@ -87,9 +87,22 @@ public class YouTubeSqlDb {
         return playlists;
     }
 
-    private final class YouTubeDbHelper extends SQLiteOpenHelper {
+    public static  class YouTubeDbHelper extends SQLiteOpenHelper {
+
+        private static YouTubeDbHelper mInstance = null;
         public YouTubeDbHelper(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        }
+
+        public static YouTubeDbHelper getInstance(Context ctx) {
+
+            // Use the application context, which will ensure that you
+            // don't accidentally leak an Activity's context.
+            // See this article for more information: http://bit.ly/6LRzfx
+            if (mInstance == null) {
+                mInstance = new YouTubeDbHelper(ctx.getApplicationContext());
+            }
+            return mInstance;
         }
 
         @Override

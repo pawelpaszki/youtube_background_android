@@ -142,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     public static final String ACTION_PREVIOUS = "action_previous";
     public static final String ACTION_SEEK = "action_seek";
     public static final String ACTION_SEEKBAR_UPDATE = "action_update";
+    public static final String ACTION_VIDEO_UPDATE = "action_video_update";
 
     private BroadcastReceiver mPlaybackStartedReceiver = new BroadcastReceiver() {
         @Override
@@ -521,6 +522,23 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 break;
         }
         sendBroadcast(new_intent);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable(){
+            @Override
+            public void run()
+            {
+                Intent new_intent = new Intent();
+                new_intent.setAction(ACTION_VIDEO_UPDATE);
+                sendBroadcast(new_intent);
+                Log.i("setaction", "vid update activity");
+            }
+        }, 2000);
+
     }
 
     private void setControlsEnabled(boolean value) {

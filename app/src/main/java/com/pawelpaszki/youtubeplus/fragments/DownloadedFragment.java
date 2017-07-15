@@ -14,6 +14,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -181,6 +182,12 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             IntentFilter intentFilter = new IntentFilter(ACTION_SEEKBAR_UPDATE);
             getActivity().registerReceiver(mPlaybackUpdatedReceiver, intentFilter);
         }
+        if (mVideoUpdateReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_VIDEO_UPDATE);
+            getActivity().registerReceiver(mVideoUpdateReceiver, intentFilter);
+        }
+
+
         downloadedVideos.clear();
         downloadedVideos.addAll(YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).readAll(null, context));
         videoListAdapter.notifyDataSetChanged();
@@ -203,6 +210,9 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         }
         if (mPlaybackUpdatedReceiver != null) {
             getActivity().unregisterReceiver(mPlaybackUpdatedReceiver);
+        }
+        if (mVideoUpdateReceiver != null) {
+            getActivity().unregisterReceiver(mVideoUpdateReceiver);
         }
 
         if(mediaPlayer != null) {
@@ -298,13 +308,6 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     private void startVideo(YouTubeVideo video, int progress) {
 
         try {
-            if (mediaPlayer != null) {
-                stopPlayer();
-
-            }
-            if(progress == -1) {
-                mSeekAdjustmentRequired = true;
-            }
 
             if(titleTextView == null) {
                 titleTextView = (TextView) getActivity().findViewById(R.id.title);
@@ -329,6 +332,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                     mediaPlayer.setDataSource(Uri.parse(files[index].getAbsolutePath()).getPath());
                     mediaPlayer.prepare();
                     mediaPlayer.setOnPreparedListener(this);
+
                     mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -350,6 +354,14 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     public static final String ACTION_SEEK = "action_seek";
     public static final String ACITON_VIDEO_CHANGE = "action_change_media";
     public static final String ACTION_SEEKBAR_UPDATE = "action_update";
+    public static final String ACTION_VIDEO_UPDATE = "action_video_update";
+
+    private BroadcastReceiver mVideoUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleIntent(intent);
+        }
+    };
 
     private BroadcastReceiver mPauseReceiver = new BroadcastReceiver() {
         @Override
@@ -390,6 +402,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         if (intent == null || intent.getAction() == null)
             return;
         String action = intent.getAction();
+        Log.i("action", action);
         if (action.equalsIgnoreCase(ACTION_PLAY)) {
             if(mediaPlayer!= null) {
                 mediaPlayer.start();
@@ -412,17 +425,20 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 int progress = intent.getIntExtra("progress", -1);
                 for (YouTubeVideo video : downloadedVideos) {
                     if (video.getId().equals(value)) {
-                        startVideo(video, -1);
+                        startVideo(video, progress);
                         break;
                     }
                 }
-            } else if (mediaPlayer!= null && mSeekAdjustmentRequired) {
+            } else {
                 int progress = intent.getIntExtra("progress", 0);
-                mediaPlayer.seekTo(progress * 1000);
-                mSeekAdjustmentRequired = false;
+                Log.i("progress in fragment", String.valueOf(progress));
+                if(mSeekAdjustmentRequired) {
+                    Log.i("progress ss", String.valueOf(progress));
+                    mediaPlayer.seekTo(progress * 1000);
+                    mSeekAdjustmentRequired = false;
 
+                }
             }
-
         } else if (action.equalsIgnoreCase(ACTION_STOP)) {
             if(mediaPlayer!= null) {
                 mediaPlayer.stop();
@@ -433,6 +449,9 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             if(mediaPlayer!= null) {
                 mediaPlayer.seekTo(value * 1000);
             }
+        } else if (action.equalsIgnoreCase(ACTION_VIDEO_UPDATE)) {
+            mSeekAdjustmentRequired = true;
+            Log.i("setaction", "vid update fragment");
         }
     }
 
@@ -518,7 +537,6 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     @Override
     public void start() {
         mediaPlayer.start();
-
     }
 
     @Override

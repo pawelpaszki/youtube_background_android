@@ -290,11 +290,9 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
             mController.getTransportControls().stop();
         } else if (action.equalsIgnoreCase(ACTION_SEEK)) {
             int value = intent.getIntExtra("seekTo", 0);
-            //Log.i("seek value", String.valueOf(value));
-            seekVideo(value * 1000);
-
-            mSetSeekToPosition = value * 1000;
-            handleSeekBarChange(videoItem.getId());
+                seekVideo(value * 1000);
+                mSetSeekToPosition = value * 1000;
+                handleSeekBarChange(videoItem.getId());
         }
     }
 
@@ -317,17 +315,18 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                                 new_intent.putExtra("progress", mMediaPlayer.getCurrentPosition() / 1000);
                                 sendBroadcast(new_intent);
                                 mSeekToSet = false;
-                                //Log.i("seek value", String.valueOf(mMediaPlayer.getCurrentPosition() / 1000));
+                                Log.i("seek value", String.valueOf(mMediaPlayer.getCurrentPosition() / 1000));
                             }
                         }
                     }
                     mSeekBarProgressHandler.postDelayed(this, 1000);
-                } else {
-                    if(mSeekBarProgressHandler != null) {
-                        mSeekBarProgressHandler.removeCallbacksAndMessages(null);
-                        mSeekBarProgressHandler = null;
-                    }
                 }
+//                else {
+//                    if(mSeekBarProgressHandler != null) {
+//                        mSeekBarProgressHandler.removeCallbacksAndMessages(null);
+//                        mSeekBarProgressHandler = null;
+//                    }
+//                }
             }
         }, 1000);
 
