@@ -131,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private boolean mHasPlaybackStarted;
     private int mProgressSet;
     private int mPausedAt;
+    private int mControlsTouchedAt;
 
     private ArrayList<FloatingActionButton> mControls = new ArrayList<>();
     private FloatingActionButton mGoToDownloads;
@@ -142,6 +143,12 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private RecentlyWatchedFragment recentlyPlayedFragment;
     private PlayListsFragment playListsFragment;
     private DownloadedFragment downloadedFragment;
+
+    public static void setmControlsTouched(boolean mControlsTouched) {
+        MainActivity.mControlsTouched = mControlsTouched;
+    }
+
+    private static boolean mControlsTouched;
 
 
     private static final String ACTION_PLAYBACK_STARTED = "playbackStarted";
@@ -157,10 +164,26 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private BroadcastReceiver mPlaybackStartedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            //Log.i("extras", intent.getStringExtra("duration"));
+            Log.i("extras", intent.getStringExtra("duration"));
+            String currentlyPlayedFragment = mTitleTextView.getText().toString();
+
             setDuration(intent.getStringExtra("duration"));
             String title = intent.getStringExtra("title");
-            if(title.length() > 0) {
+
+            Log.i("test ### title", currentlyPlayedFragment);
+            Log.i("test ### ctrl touched", String.valueOf(mControlsTouched));
+            if(mControlsTouched) {
+                mControlsTouched = false;
+                if(currentlyPlayedFragment.contains("(DOWNLOADED")) {
+                    downloadedFragment.setTitle(title);
+                } else if (currentlyPlayedFragment.contains("(PLAYLISTS")) {
+                    playListsFragment.setTitle(title);
+                } else if (currentlyPlayedFragment.contains("(RECENT")) {
+                    recentlyPlayedFragment.setTitle(title);
+                } else if (currentlyPlayedFragment.contains("(SEARCH")) {
+                    searchFragment.setTitle(title);
+                }
+            } else {
                 switch(viewPager.getCurrentItem()) {
                     case 0:
                         downloadedFragment.setTitle(title);
@@ -301,6 +324,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             @Override
             public void onClick(View v) {
                 if(mHasPlaybackStarted) {
+                    mControlsTouchedAt = viewPager.getCurrentItem();
+                    mControlsTouched = true;
                     sendBroadcast("previous");
                     mDurationSeekbar.setProgress(0);
                     setPlayIconAndDisableControls(true);
@@ -334,6 +359,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             @Override
             public void onClick(View v) {
                 if(mHasPlaybackStarted) {
+                    mControlsTouchedAt = viewPager.getCurrentItem();
+                    mControlsTouched = true;
                     sendBroadcast("next");
                     setPlayIconAndDisableControls(true);
                     mDurationSeekbar.setProgress(0);

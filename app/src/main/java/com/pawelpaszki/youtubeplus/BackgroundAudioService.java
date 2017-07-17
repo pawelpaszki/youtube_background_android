@@ -284,23 +284,14 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
             mController.getTransportControls().pause();
             removeAllHandlers();
         } else if (action.equalsIgnoreCase(ACTION_PREVIOUS)) {
-            if(mediaType == ItemType.MEDIA_LOCAL) {
-                playPrevious();
-            } else {
-                if(SharedPrefs.getIsLooping(getApplicationContext())) {
-                    seekVideo(0);
-                    mSetSeekToPosition = 0;
-                    handleSeekBarChange(videoItem.getId());
-                } else {
-                    mController.getTransportControls().skipToPrevious();
-                }
-            }
+            playPrevious();
         } else if (action.equalsIgnoreCase(ACTION_NEXT)) {
-            if(mediaType == ItemType.MEDIA_LOCAL) {
-                playNext();
-            } else {
-                mController.getTransportControls().skipToNext();
-            }
+            playNext();
+//            if(mediaType == ItemType.MEDIA_LOCAL) {
+//                playNext();
+//            } else {
+//                mController.getTransportControls().skipToNext();
+//            }
         } else if (action.equalsIgnoreCase(ACTION_STOP)) {
             Log.i("stop", "in service");
             mController.getTransportControls().stop();
@@ -891,6 +882,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         new_intent.setAction(ACTION_PLAYBACK_STARTED);
         new_intent.putExtra("duration", duration);
         new_intent.putExtra("title", videoItem.getTitle());
+        new_intent.putExtra("playlist", videoItem.getTitle());
         sendBroadcast(new_intent);
     }
 
@@ -908,7 +900,6 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         } else {
             restartVideo();
         }
-
     }
 
     @Override

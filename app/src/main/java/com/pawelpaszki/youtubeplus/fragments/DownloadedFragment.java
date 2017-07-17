@@ -54,6 +54,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import static com.pawelpaszki.youtubeplus.MainActivity.setmControlsTouched;
 import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlaylistSelectionDialog;
 
 /**
@@ -277,6 +278,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     @Override
     public void onItemClick(final YouTubeVideo video) {
         Log.i("item clicked", "downloaded");
+        setmControlsTouched(false);
         if (fileExists(video)) {
             Intent serviceIntent = new Intent(getActivity(), BackgroundAudioService.class);
             serviceIntent.setAction(BackgroundAudioService.ACTION_PLAY);
@@ -427,23 +429,25 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                     }
                 }
         } else if (action.equalsIgnoreCase(ACTION_SEEKBAR_UPDATE)) {
-            if(mediaPlayer == null) {
-                String value = intent.getStringExtra("videoId");
-                int progress = intent.getIntExtra("progress", -1);
-                for (YouTubeVideo video : downloadedVideos) {
-                    if (video.getId().equals(value)) {
-                        startVideo(video, progress);
-                        break;
+            if(((MainActivity)getActivity()).getmTitleTextView().getText().toString().contains("(DOWNLOADED")) {
+                if(mediaPlayer == null) {
+                    String value = intent.getStringExtra("videoId");
+                    int progress = intent.getIntExtra("progress", -1);
+                    for (YouTubeVideo video : downloadedVideos) {
+                        if (video.getId().equals(value)) {
+                            startVideo(video, progress);
+                            break;
+                        }
                     }
-                }
-            } else {
-                int progress = intent.getIntExtra("progress", 0);
-                Log.i("progress in fragment", String.valueOf(progress));
-                if(mSeekAdjustmentRequired) {
-                    Log.i("progress ss", String.valueOf(progress));
-                    mediaPlayer.seekTo(progress * 1000);
-                    mSeekAdjustmentRequired = false;
+                } else {
+                    int progress = intent.getIntExtra("progress", 0);
+                    Log.i("progress in fragment", String.valueOf(progress));
+                    if(mSeekAdjustmentRequired) {
+                        Log.i("progress ss", String.valueOf(progress));
+                        mediaPlayer.seekTo(progress * 1000);
+                        mSeekAdjustmentRequired = false;
 
+                    }
                 }
             }
         } else if (action.equalsIgnoreCase(ACTION_STOP)) {
