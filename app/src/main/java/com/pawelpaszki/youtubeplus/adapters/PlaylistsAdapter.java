@@ -82,7 +82,6 @@ public class PlaylistsAdapter extends RecyclerView.Adapter<PlaylistsAdapter.View
             title = (TextView) itemView.findViewById(R.id.playlist_title);
             videosNumber = (TextView) itemView.findViewById(R.id.videos_number);
             privacy = (TextView) itemView.findViewById(R.id.privacy);
-            shareButton = (ImageView) itemView.findViewById(R.id.share_button);
         }
     }
 

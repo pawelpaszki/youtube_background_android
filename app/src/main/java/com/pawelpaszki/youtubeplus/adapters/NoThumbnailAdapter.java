@@ -22,7 +22,7 @@ import java.util.List;
  * Created by PawelPaszki on 07/07/2017.
  */
 
-public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.ViewHolder> implements View.OnLongClickListener
+public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.ViewHolder>
          {
 
     private static final String TAG = "SMEDIC";
@@ -105,11 +105,6 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
     public int getItemCount() {
         return (null != list ? list.size() : 0);
     }
-
-     @Override
-     public boolean onLongClick(View v) {
-         return false;
-     }
 
      class ViewHolder extends RecyclerView.ViewHolder{
         TextView title;

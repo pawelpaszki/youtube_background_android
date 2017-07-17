@@ -16,9 +16,11 @@
 package com.pawelpaszki.youtubeplus.adapters;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.media.Image;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -42,8 +44,7 @@ import java.util.List;
  * Custom ArrayAdapter which enables setup of a list view row views
  * Created by smedic on 8.2.16..
  */
-public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder>
-        implements View.OnClickListener {
+public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder> {
 
     private static final String TAG = "SMEDIC";
     private Context context;
@@ -63,7 +64,6 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.video_item, null);
-        view.setOnClickListener(this);
         return new ViewHolder(view);
     }
 
@@ -71,7 +71,55 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
     public void onBindViewHolder(ViewHolder holder, final int position) {
         final YouTubeVideo video = list.get(position);
         Picasso.with(context).load(video.getThumbnailURL()).into(holder.thumbnail);
+
         holder.title.setText(video.getTitle());
+        holder.title.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+                builder.setTitle("Please choose option");
+                String [] searchOptions = new String[] {"add to playlist", "download"};
+                String [] recentOptions = new String[] {"add to playlist", "remove from the list", "download"};
+                final String [] options;
+                if(mFragment.equals("searchFragment")) {
+                    options = searchOptions;
+                } else {
+                    options = recentOptions;
+                }
+                builder.setSingleChoiceItems(options, -1, new DialogInterface
+                        .OnClickListener() {
+                    public void onClick(DialogInterface dialog, int item) {
+                        if(options[item].equals("add to playlist")) {
+                            if (itemEventsListener != null) {
+                                itemEventsListener.onAddClicked(video);
+                            }
+                        } else if (options[item].equals("remove from the list")) {
+                            if (itemEventsListener != null) {
+                                itemEventsListener.onRemoveClicked(video);
+                            }
+                        } else if (options[item].equals("download")) {
+                            if (itemEventsListener != null) {
+                                itemEventsListener.onDownloadClicked(video);
+                            }
+                        }
+                        dialog.dismiss();
+
+                    }
+                });
+                AlertDialog alert = builder.create();
+                alert.show();
+                Log.i("long click", "true");
+                return true;
+            }
+        });
+        holder.title.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (itemEventsListener != null) {
+                    itemEventsListener.onItemClick(video);
+                }
+            }
+        });
         holder.duration.setText(video.getDuration());
         Log.i("views", video.getViewCount());
         String views;
@@ -88,44 +136,7 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
             views = tokens[0] + "." + tokens[1] + "M views";
         }
         holder.viewCount.setText(views);
-        setClickable(holder.addActionButton);
-        setClickable(holder.removeActionButton);
-        setClickable(holder.downloadActionButton);
-        holder.addActionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (itemEventsListener != null) {
-                    itemEventsListener.onAddClicked(video);
-                }
-            }
-        });
-        if(mFragment.equals("searchFragment")) {
-            holder.removeActionButton.setVisibility(View.INVISIBLE);
-        } else {
-            holder.removeActionButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (itemEventsListener != null) {
-                        itemEventsListener.onRemoveClicked(video);
-                    }
-                }
-            });
-        }
-        holder.downloadActionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (itemEventsListener != null) {
-                    itemEventsListener.onDownloadClicked(video);
-                }
-            }
-        });
-
         holder.itemView.setTag(video);
-    }
-
-    private void setClickable(ImageView view) {
-        view.bringToFront();
-        view.setClickable(true);
     }
 
     @Override
@@ -133,22 +144,11 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
         return (null != list ? list.size() : 0);
     }
 
-    @Override
-    public void onClick(View v) {
-        if (itemEventsListener != null) {
-            YouTubeVideo item = (YouTubeVideo) v.getTag();
-            itemEventsListener.onItemClick(item);
-        }
-    }
-
     class ViewHolder extends RecyclerView.ViewHolder {
         ImageView thumbnail;
         TextView title;
         TextView duration;
         TextView viewCount;
-        ImageView addActionButton;
-        ImageView removeActionButton;
-        ImageView downloadActionButton;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -156,9 +156,6 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
             title = (TextView) itemView.findViewById(R.id.video_title);
             duration = (TextView) itemView.findViewById(R.id.video_duration);
             viewCount = (TextView) itemView.findViewById(R.id.views_number);
-            addActionButton = (ImageView) itemView.findViewById(R.id.addActionButton);
-            removeActionButton = (ImageView) itemView.findViewById(R.id.removeActionButton);
-            downloadActionButton = (ImageView) itemView.findViewById(R.id.downloadActionButton);
         }
     }
 

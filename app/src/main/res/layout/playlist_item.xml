@@ -57,17 +57,6 @@
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
-            <ImageView
-                android:id="@+id/share_button"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_marginEnd="15dp"
-                android:layout_marginRight="15dp"
-                android:background="@drawable/share_button_selector" />
-
         </RelativeLayout>
     </LinearLayout>
 </RelativeLayout>
