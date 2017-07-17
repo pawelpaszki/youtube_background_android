@@ -890,6 +890,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         Intent new_intent = new Intent();
         new_intent.setAction(ACTION_PLAYBACK_STARTED);
         new_intent.putExtra("duration", duration);
+        new_intent.putExtra("title", videoItem.getTitle());
         sendBroadcast(new_intent);
     }
 

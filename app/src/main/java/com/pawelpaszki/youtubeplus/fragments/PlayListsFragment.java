@@ -38,6 +38,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.pawelpaszki.youtubeplus.MainActivity;
@@ -72,6 +73,7 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
     private AlertDialog.Builder mAlertBuilder;
     private Spinner mSpinner;
     private ArrayAdapter<String> mSpinnerArrayAdapter;
+
 
     public PlayListsFragment() {
         // Required empty public constructor
@@ -343,6 +345,12 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
         super.onDetach();
         this.itemSelected = null;
         this.context = null;
+    }
+
+    public void setTitle(String title) {
+        String aTitle = title + " " + getString(R.string.playlists_tab);
+        ((MainActivity)getActivity()).getmTitleTextView().setText(aTitle);
+        ((MainActivity)getActivity()).getmTitleTextView().setSelected(true);
     }
 
     @Override

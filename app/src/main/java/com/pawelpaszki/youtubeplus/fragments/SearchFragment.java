@@ -31,6 +31,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.pawelpaszki.youtubeplus.MainActivity;
 import com.pawelpaszki.youtubeplus.R;
@@ -198,11 +199,18 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
         //do nothing
     }
 
+    public void setTitle(String title) {
+        String aTitle = title + " " + getString(R.string.search_tab);
+        ((MainActivity)getActivity()).getmTitleTextView().setText(aTitle);
+        ((MainActivity)getActivity()).getmTitleTextView().setSelected(true);
+    }
+
     @Override
     public void onItemClick(YouTubeVideo video) {
         YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).create(video);
         //itemSelected.onVideoSelected(video);
         itemSelected.onPlaylistSelected(searchResultsList, searchResultsList.indexOf(video));
+
     }
 
     @Override

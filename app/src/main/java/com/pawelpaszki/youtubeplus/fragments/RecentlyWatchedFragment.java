@@ -29,6 +29,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.pawelpaszki.youtubeplus.MainActivity;
@@ -142,6 +143,12 @@ public class RecentlyWatchedFragment extends BaseFragment implements
         super.onDetach();
         this.itemSelected = null;
         this.context = null;
+    }
+
+    public void setTitle(String title) {
+        String aTitle = title + " " + getString(R.string.recently_watched_tab);
+        ((MainActivity)getActivity()).getmTitleTextView().setText(aTitle);
+        ((MainActivity)getActivity()).getmTitleTextView().setSelected(true);
     }
 
     @Override

@@ -74,6 +74,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.VideoView;
 
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
@@ -115,6 +116,12 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     static final int REQUEST_ACCOUNT_PICKER = 1000;
 
     private SeekBar mDurationSeekbar;
+
+    public TextView getmTitleTextView() {
+        return mTitleTextView;
+    }
+
+    private TextView mTitleTextView;
     private ImageView mPreviousVideo;
     private ImageView mPlay;
     private ImageView mStop;
@@ -152,8 +159,23 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         public void onReceive(Context context, Intent intent) {
             //Log.i("extras", intent.getStringExtra("duration"));
             setDuration(intent.getStringExtra("duration"));
-
-
+            String title = intent.getStringExtra("title");
+            if(title.length() > 0) {
+                switch(viewPager.getCurrentItem()) {
+                    case 0:
+                        downloadedFragment.setTitle(title);
+                        break;
+                    case 1:
+                        playListsFragment.setTitle(title);
+                        break;
+                    case 2:
+                        recentlyPlayedFragment.setTitle(title);
+                        break;
+                    case 3:
+                        searchFragment.setTitle(title);
+                        break;
+                }
+            }
         }
     };
 
@@ -189,6 +211,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
         YouTubeSqlDb.getInstance().init(this);
 
+        mTitleTextView = (TextView) findViewById(R.id.title);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -355,8 +378,19 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 @Override
                 public void onClick(View v) {
                     // hide keyboard
-                    InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+//                    InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//                    inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                    Log.i("page selected", String.valueOf(j));
+                    if(j!= 0) {
+                        downloadedFragment.stopAllListeners(false);
+                    } else {
+                        if(!mTitleTextView.getText().toString().contains("(RECENT)") && !mTitleTextView.getText().toString().contains("(SEARCH)") &&
+                        !mTitleTextView.getText().toString().contains("(PLAYLISTS)")) {
+                            Log.i("resume listeners", "true");
+                            downloadedFragment.resumeAllListeners();
+                        }
+
+                    }
 
                     viewPager.setCurrentItem(j, false);
                     setButtonBackgroundTint();
@@ -549,7 +583,9 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 break;
             case "stop":
                 new_intent.setAction(ACTION_STOP);
-
+                if(viewPager.getCurrentItem() != 0) {
+                    clearTitleTextView();
+                }
                 break;
         }
         sendBroadcast(new_intent);
@@ -570,6 +606,12 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             }
         }, 2000);
 
+    }
+
+    private void clearTitleTextView() {
+        mTitleTextView = (TextView) findViewById(R.id.title);
+        mTitleTextView.setText("");
+        mTitleTextView.setSelected(true);
     }
 
     private void setControlsEnabled(boolean value) {

@@ -72,8 +72,8 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     private int mContainerWidth;
     private LinearLayout mVideosContainer;
     private int mTopMargin;
-    private TextView titleTextView;
     private boolean mSeekAdjustmentRequired;
+    private boolean mReceiversRegistered;
 
     public DownloadedFragment() {
         // Required empty public constructor
@@ -146,10 +146,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         return v;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.i("on resume", "downloaded");
+    public void resumeAllListeners() {
         if (mPauseReceiver != null) {
             IntentFilter intentFilter = new IntentFilter(ACTION_PAUSE);
             getActivity().registerReceiver(mPauseReceiver, intentFilter);
@@ -178,45 +175,61 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             IntentFilter intentFilter = new IntentFilter(ACTION_STOP);
             getActivity().registerReceiver(mStopReceiver, intentFilter);
         }
-
+        mReceiversRegistered = true;
 
         downloadedVideos.clear();
         downloadedVideos.addAll(YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).readAll(null, context));
         videoListAdapter.notifyDataSetChanged();
     }
 
+    public void stopAllListeners(boolean resetTitleTextView) {
+        if(mReceiversRegistered) {
+            if (mPauseReceiver != null) {
+                getActivity().unregisterReceiver(mPauseReceiver);
+            }
+            if (mPlayReceiver != null) {
+                getActivity().unregisterReceiver(mPlayReceiver);
+            }
+            if (mMediaChangeReceiver != null) {
+                getActivity().unregisterReceiver(mMediaChangeReceiver);
+            }
+            if (mSeekToReceiver != null) {
+                getActivity().unregisterReceiver(mSeekToReceiver);
+            }
+            if (mPlaybackUpdatedReceiver != null) {
+                getActivity().unregisterReceiver(mPlaybackUpdatedReceiver);
+            }
+            if (mVideoUpdateReceiver != null) {
+                getActivity().unregisterReceiver(mVideoUpdateReceiver);
+            }
+            if (mStopReceiver != null) {
+                getActivity().unregisterReceiver(mStopReceiver);
+            }
+            if(mediaPlayer != null) {
+                stopPlayer(resetTitleTextView);
+            }
+        }
+        mReceiversRegistered = false;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.i("on resume", "downloaded");
+        resumeAllListeners();
+    }
+
     @Override
     public void onPause() {
         super.onPause();
-        if (mPauseReceiver != null) {
-            getActivity().unregisterReceiver(mPauseReceiver);
-        }
-        if (mPlayReceiver != null) {
-            getActivity().unregisterReceiver(mPlayReceiver);
-        }
-        if (mMediaChangeReceiver != null) {
-            getActivity().unregisterReceiver(mMediaChangeReceiver);
-        }
-        if (mSeekToReceiver != null) {
-            getActivity().unregisterReceiver(mSeekToReceiver);
-        }
-        if (mPlaybackUpdatedReceiver != null) {
-            getActivity().unregisterReceiver(mPlaybackUpdatedReceiver);
-        }
-        if (mVideoUpdateReceiver != null) {
-            getActivity().unregisterReceiver(mVideoUpdateReceiver);
-        }
-        if (mStopReceiver != null) {
-            getActivity().unregisterReceiver(mStopReceiver);
-        }
-        if(mediaPlayer != null) {
-            stopPlayer();
-        }
-        if(titleTextView != null) {
-            titleTextView.setText("");
-            titleTextView.setSelected(false);
-        }
+        stopAllListeners(true);;
 
+    }
+
+    public void setTitle(String title) {
+        String aTitle = title + " " + getString(R.string.downloaded_tab);
+        ((MainActivity)getActivity()).getmTitleTextView().setText(aTitle);
+        ((MainActivity)getActivity()).getmTitleTextView().setSelected(true);
     }
 
     @Override
@@ -231,9 +244,8 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     public void onDetach() {
         super.onDetach();
         if(mediaPlayer != null) {
-            stopPlayer();
+            stopPlayer(true);
         }
-
         this.context = null;
     }
 
@@ -289,26 +301,21 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
 
     }
 
-    private void stopPlayer() {
+    private void stopPlayer(boolean resetTitleTextView) {
         if(mediaPlayer != null) {
+            mediaPlayer.reset();
             mediaPlayer.stop();
             mediaPlayer.release();
             mediaPlayer = null;
-            titleTextView.setText("");
-            titleTextView.setSelected(false);
+            vidSurface.setVisibility(View.GONE);
+            setPlayListSize(false);
+
         }
     }
 
     private void startVideo(YouTubeVideo video, int progress) {
 
         try {
-
-            if(titleTextView == null) {
-                titleTextView = (TextView) getActivity().findViewById(R.id.title);
-            }
-            String title = video.getTitle() + " " + getString(R.string.downloaded_tab);
-            titleTextView.setText(title);
-            titleTextView.setSelected(true);
             final File[] files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
             int index = -1;
             for (int i = 0; i < files.length; i++) {
@@ -440,18 +447,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 }
             }
         } else if (action.equalsIgnoreCase(ACTION_STOP)) {
-            if(mediaPlayer!= null) {
-                mediaPlayer.reset();
-                mediaPlayer.stop();
-                mediaPlayer.release();
-                mediaPlayer = null;
-                vidSurface.setVisibility(View.GONE);
-                setPlayListSize(false);
-                titleTextView.setText("");
-                titleTextView.setSelected(false);
-                Log.i("stop ", "fragment");
-            }
-
+            stopPlayer(true);
         } else if (action.equalsIgnoreCase(ACTION_SEEK)) {
             int value = intent.getIntExtra("seekTo", 0);
             if(mediaPlayer!= null) {
@@ -631,9 +627,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        mediaPlayer.stop();
-        mediaPlayer.release();
-        mediaPlayer = null;
+        stopPlayer(true);
     }
 }
 
