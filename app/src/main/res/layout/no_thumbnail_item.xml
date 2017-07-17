@@ -19,13 +19,15 @@
         <RelativeLayout
             android:id="@+id/title_container"
             android:layout_width="0dp"
+
             android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:layout_weight="56">
+            android:layout_weight="80">
 
             <TextView
                 android:id="@+id/item_title"
                 android:layout_width="match_parent"
+                android:paddingLeft="5dp"
                 android:layout_height="match_parent"
                 android:layout_centerInParent="true"
                 android:gravity="center_vertical"
@@ -35,23 +37,6 @@
 
 
         </RelativeLayout>
-        <RelativeLayout
-            android:id="@+id/media_type_container"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:layout_gravity="center"
-            android:padding="2dp"
-            android:layout_weight="8">
-
-            <ImageView
-                android:id="@+id/additional_item"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:layout_marginEnd="5dp"
-                android:layout_centerInParent="true"
-                android:background="@drawable/download" />
-            </RelativeLayout>
 
         <RelativeLayout
             android:id="@+id/image_frame_layout"
@@ -60,44 +45,18 @@
             android:orientation="horizontal"
             android:layout_gravity="center"
             android:padding="2dp"
-            android:layout_weight="16">
+            android:layout_weight="20">
             <TextView
                 android:id="@+id/item_duration"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginEnd="2dp"
+                android:layout_marginEnd="4dp"
                 android:layout_gravity="end"
                 android:gravity="center_vertical|end"
                 android:textSize="12sp"
                 android:textStyle="bold"/>
             </RelativeLayout>
 
-        <RelativeLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="20">
 
-            <ImageView
-                android:id="@+id/remove_button"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerInParent="true"
-                android:layout_marginEnd="5dp"
-                android:backgroundTint="@color/colorPrimaryDark"
-                android:background="@android:drawable/ic_menu_delete" />
-
-
-            <ImageView
-                android:id="@+id/add_button"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginEnd="5dp"
-                android:layout_centerInParent="true"
-                android:layout_toStartOf="@id/remove_button"
-                android:backgroundTint="@color/colorPrimaryDark"
-                android:background="@android:drawable/ic_menu_add" />
-
-        </RelativeLayout>
     </LinearLayout>
 </RelativeLayout>

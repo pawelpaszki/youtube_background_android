@@ -271,6 +271,12 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                     params.height = 0;
                     toolbar.setLayoutParams(params);
                 }
+                if(position == 0 && mTitleTextView.getText().toString().contains("(DOWNLOADED")) {
+                    Intent new_intent = new Intent();
+                    new_intent.setAction(ACTION_VIDEO_UPDATE);
+                    sendBroadcast(new_intent);
+                    Log.i("setaction", "vid update activity");
+                }
             }
 
             @Override

@@ -253,19 +253,24 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     @Override
     public void onRemoveClicked(YouTubeVideo video) {
         Log.i("remove clicked","true");
-        downloadedVideos.remove(video);
-        String filename = video.getId();
-        File[] files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
-        for (File file1 : files) {
-            if (file1.getAbsolutePath().contains(filename)) {
-                String fileToRemove = file1.getAbsolutePath();
-                File file = new File(fileToRemove);
-                boolean ignored = file.delete();
-                break;
+        if(!((MainActivity)getActivity()).getmTitleTextView().getText().toString().contains(video.getTitle())) {
+            downloadedVideos.remove(video);
+            String filename = video.getId();
+            File[] files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
+            for (File file1 : files) {
+                if (file1.getAbsolutePath().contains(filename)) {
+                    String fileToRemove = file1.getAbsolutePath();
+                    File file = new File(fileToRemove);
+                    boolean ignored = file.delete();
+                    break;
+                }
             }
+            YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).delete(video.getId(), YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED.toString(), context);
+            videoListAdapter.notifyDataSetChanged();
+        } else {
+            Toast.makeText(YTApplication.getAppContext(), "Cannot remove currently played video",
+                    Toast.LENGTH_SHORT).show();
         }
-        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).delete(video.getId(), YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED.toString(), context);
-        videoListAdapter.notifyDataSetChanged();
     }
 
     @Override

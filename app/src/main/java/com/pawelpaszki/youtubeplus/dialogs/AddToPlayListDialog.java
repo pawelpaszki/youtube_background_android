@@ -6,13 +6,9 @@ import android.support.v7.app.AlertDialog;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.Toast;
 
-import com.pawelpaszki.youtubeplus.YTApplication;
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
@@ -38,8 +34,6 @@ public class AddToPlayListDialog {
             builder.setSingleChoiceItems(radioButtonOptions, -1, new DialogInterface
                     .OnClickListener() {
                 public void onClick(DialogInterface dialog, int item) {
-                    Toast.makeText(context,
-                            "playlist = "+radioButtonOptions[item], Toast.LENGTH_SHORT).show();
                     addVideoToPlaylist(context, video, radioButtonOptions[item]);
                     dialog.dismiss();
 
