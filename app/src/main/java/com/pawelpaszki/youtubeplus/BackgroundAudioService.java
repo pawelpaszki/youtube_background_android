@@ -93,7 +93,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     public static final String ACTION_SEEK = "action_seek";
     public static final String ACTION_SEEKBAR_UPDATE = "action_update";
     public static final String ACITON_VIDEO_CHANGE = "action_change_media";
-    public static final String ACTION_VIDEO_UPDATE = "action_video_update";
+
 
     private Handler mSeekBarProgressHandler;
     private boolean mPreviousPressed;
@@ -154,6 +154,13 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         }
     };
 
+    private BroadcastReceiver mStopReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleIntent(intent);
+        }
+    };
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -191,6 +198,10 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         if (mSeekToReceiver != null) {
             IntentFilter intentFilter = new IntentFilter(ACTION_SEEK);
             registerReceiver(mSeekToReceiver, intentFilter);
+        }
+        if (mStopReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_STOP);
+            registerReceiver(mStopReceiver, intentFilter);
         }
     }
 
@@ -242,6 +253,9 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         if (mSeekToReceiver != null) {
             unregisterReceiver(mSeekToReceiver);
         }
+        if (mStopReceiver != null) {
+            unregisterReceiver(mStopReceiver);
+        }
         if(mMediaPlayer!=null) {
             if(mMediaPlayer.isPlaying())
                 mMediaPlayer.stop();
@@ -288,7 +302,16 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                 mController.getTransportControls().skipToNext();
             }
         } else if (action.equalsIgnoreCase(ACTION_STOP)) {
+            Log.i("stop", "in service");
             mController.getTransportControls().stop();
+            if(mMediaPlayer != null) {
+                stopPlayer();
+                if(mSeekBarProgressHandler != null) {
+                    mSeekBarProgressHandler.removeCallbacksAndMessages(null);
+                    mSeekBarProgressHandler = null;
+                }
+            }
+            stopSelf();
         } else if (action.equalsIgnoreCase(ACTION_SEEK)) {
             int value = intent.getIntExtra("seekTo", 0);
                 seekVideo(value * 1000);
@@ -776,9 +799,14 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
      * Stops video
      */
     private void stopPlayer() {
-        mMediaPlayer.stop();
-        mMediaPlayer.release();
-        mMediaPlayer = null;
+        if(mMediaPlayer != null) {
+            mMediaPlayer.stop();
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancelAll();
+        }
+
     }
 
     /**

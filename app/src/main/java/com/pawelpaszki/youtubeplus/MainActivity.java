@@ -117,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private SeekBar mDurationSeekbar;
     private ImageView mPreviousVideo;
     private ImageView mPlay;
+    private ImageView mStop;
     private ImageView mNextVideo;
     private ImageView mLoopVideo;
     private boolean mIsPlaying;
@@ -144,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     public static final String ACTION_SEEK = "action_seek";
     public static final String ACTION_SEEKBAR_UPDATE = "action_update";
     public static final String ACTION_VIDEO_UPDATE = "action_video_update";
+    public static final String ACTION_STOP = "action_stop";
 
     private BroadcastReceiver mPlaybackStartedReceiver = new BroadcastReceiver() {
         @Override
@@ -310,6 +312,18 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             public void onClick(View v) {
                 if(mHasPlaybackStarted) {
                     sendBroadcast("next");
+                    setPlayIconAndDisableControls(true);
+                    mDurationSeekbar.setProgress(0);
+                }
+            }
+        });
+
+        mStop = (ImageView) findViewById(R.id.stop);
+        mStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mHasPlaybackStarted) {
+                    sendBroadcast("stop");
                     setPlayIconAndDisableControls(true);
                     mDurationSeekbar.setProgress(0);
                 }
@@ -532,6 +546,10 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             case "seek":
                 new_intent.setAction(ACTION_SEEK);
                 new_intent.putExtra("seekTo", mProgressSet);
+                break;
+            case "stop":
+                new_intent.setAction(ACTION_STOP);
+
                 break;
         }
         sendBroadcast(new_intent);

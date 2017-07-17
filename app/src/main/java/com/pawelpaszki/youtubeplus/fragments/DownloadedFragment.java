@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -97,21 +98,8 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         vidSurface = (SurfaceView) v.findViewById(R.id.surfaceView);
         vidHolder = vidSurface.getHolder();
         vidHolder.addCallback(this);
-        TypedValue tv = new TypedValue();
-        int height;
-        if (context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
-            height = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
-        } else {
-            float density = getResources().getDisplayMetrics().density;
-            height = (int) (50 * density);
-        }
         mVideosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
-        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) mVideosContainer.getLayoutParams();
-        float density = context.getResources().getDisplayMetrics().density;
-        mTopMargin = height + (int) (6 * density);
-        params.topMargin = mTopMargin;
-
-        mVideosContainer.setLayoutParams(params);
+        setPlayListSize(true);
 //        if(SharedPrefs.getVideoContainerHeight(context) == 0) {
         mVideosContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
@@ -186,6 +174,10 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             IntentFilter intentFilter = new IntentFilter(ACTION_VIDEO_UPDATE);
             getActivity().registerReceiver(mVideoUpdateReceiver, intentFilter);
         }
+        if (mStopReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_STOP);
+            getActivity().registerReceiver(mStopReceiver, intentFilter);
+        }
 
 
         downloadedVideos.clear();
@@ -214,7 +206,9 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         if (mVideoUpdateReceiver != null) {
             getActivity().unregisterReceiver(mVideoUpdateReceiver);
         }
-
+        if (mStopReceiver != null) {
+            getActivity().unregisterReceiver(mStopReceiver);
+        }
         if(mediaPlayer != null) {
             stopPlayer();
         }
@@ -397,6 +391,12 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             handleIntent(intent);
         }
     };
+    private BroadcastReceiver mStopReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleIntent(intent);
+        }
+    };
 
     private void handleIntent(Intent intent) {
         if (intent == null || intent.getAction() == null)
@@ -441,7 +441,15 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             }
         } else if (action.equalsIgnoreCase(ACTION_STOP)) {
             if(mediaPlayer!= null) {
+                mediaPlayer.reset();
                 mediaPlayer.stop();
+                mediaPlayer.release();
+                mediaPlayer = null;
+                vidSurface.setVisibility(View.GONE);
+                setPlayListSize(false);
+                titleTextView.setText("");
+                titleTextView.setSelected(false);
+                Log.i("stop ", "fragment");
             }
 
         } else if (action.equalsIgnoreCase(ACTION_SEEK)) {
@@ -458,6 +466,30 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     @Override
     public void onDownloadClicked(YouTubeVideo video) {
         //do nothing
+    }
+
+    private void setPlayListSize(boolean firstTimeSet) {
+        TypedValue tv = new TypedValue();
+        int height;
+        if (context.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
+            height = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
+        } else {
+            float density = getResources().getDisplayMetrics().density;
+            height = (int) (50 * density);
+        }
+
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) mVideosContainer.getLayoutParams();
+        float density = context.getResources().getDisplayMetrics().density;
+        mTopMargin = height + (int) (6 * density);
+        params.topMargin = mTopMargin;
+        if(!firstTimeSet) {
+            params.height = mContainerHeight;
+            params.width = mContainerWidth;
+        }
+
+        params.gravity = Gravity.TOP;
+
+        mVideosContainer.setLayoutParams(params);
     }
 
     private boolean fileExists(YouTubeVideo video) {
