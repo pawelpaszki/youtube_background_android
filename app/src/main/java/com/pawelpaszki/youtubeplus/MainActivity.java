@@ -29,6 +29,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -150,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             //Log.i("extras", intent.getStringExtra("duration"));
             setDuration(intent.getStringExtra("duration"));
 
+
         }
     };
 
@@ -188,6 +190,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        toolbar.setBackground(new ColorDrawable(Color.parseColor("#980000")));
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 
@@ -468,6 +472,15 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         if(mPlaybackStartedReceiver != null) {
             unregisterReceiver(mPlaybackStartedReceiver);
         }
+        if(mPlaybackUpdated != null) {
+            unregisterReceiver(mPlaybackUpdated);
+        }
+        try {
+            YouTubeSqlDb.YouTubeDbHelper.getInstance(this).finalize();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+
     }
 
     private void setIsLoopingIcon(boolean doUpdate) {

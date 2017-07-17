@@ -93,6 +93,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     public static final String ACTION_SEEK = "action_seek";
     public static final String ACTION_SEEKBAR_UPDATE = "action_update";
     public static final String ACITON_VIDEO_CHANGE = "action_change_media";
+    public static final String ACTION_VIDEO_UPDATE = "action_video_update";
 
     private Handler mSeekBarProgressHandler;
     private boolean mPreviousPressed;
@@ -659,6 +660,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                             new_intent.setAction(ACITON_VIDEO_CHANGE);
                             new_intent.putExtra("videoId", filename);
                             sendBroadcast(new_intent);
+
                         }
                     });
 

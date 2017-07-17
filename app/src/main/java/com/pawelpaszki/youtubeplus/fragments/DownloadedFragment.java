@@ -59,7 +59,7 @@ import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlayli
  * Created by PawelPaszki on 04/07/2017.
  */
 
-public class DownloadedFragment extends BaseFragment implements ItemEventsListener<YouTubeVideo>, SurfaceHolder.Callback, MediaPlayer.OnPreparedListener, MediaController.MediaPlayerControl {
+public class DownloadedFragment extends BaseFragment implements ItemEventsListener<YouTubeVideo>, SurfaceHolder.Callback, MediaPlayer.OnPreparedListener, MediaController.MediaPlayerControl, MediaPlayer.OnCompletionListener {
 
     private ArrayList<YouTubeVideo> downloadedVideos;
 
@@ -124,7 +124,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                     mVideosContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
 
                     android.widget.FrameLayout.LayoutParams params = new android.widget.FrameLayout.LayoutParams(mContainerWidth, mContainerWidth * 3/4);
-                    params.topMargin = mTopMargin;
+                    //params.topMargin = mTopMargin;
 
                     vidSurface.setLayoutParams(params);
                 }
@@ -499,6 +499,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
 
         // Get the width of the screen
         int width = SharedPrefs.getVideoContainerWidth(context);
+        int containerHeight = SharedPrefs.getVideoContainerHeight(context);
         int height;
 
         // Get the SurfaceView layout parameters
@@ -506,15 +507,22 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         lp.width = width;
         if(videoWidth >= width) {
             height = videoHeight * width / videoHeight;
+            if(height > containerHeight) {
+                height = containerHeight;
+            }
             lp.height = height;
         } else {
             height = videoHeight * width / videoWidth;
+            if(height > containerHeight) {
+                height = containerHeight;
+            }
             lp.height = height;
         }
 
+
         vidSurface.setLayoutParams(lp);
         FrameLayout.LayoutParams videoContainerParams = (FrameLayout.LayoutParams) mVideosContainer.getLayoutParams();
-        videoContainerParams.height = mContainerHeight - height;
+        videoContainerParams.height = mContainerHeight - height + mTopMargin;
         videoContainerParams.gravity = Gravity.BOTTOM;
         mVideosContainer.setLayoutParams(videoContainerParams);
     }
@@ -587,6 +595,13 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     @Override
     public int getAudioSessionId() {
         return 0;
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+        mediaPlayer.stop();
+        mediaPlayer.release();
+        mediaPlayer = null;
     }
 }
 

@@ -106,6 +106,12 @@ public class YouTubeSqlDb {
         }
 
         @Override
+        public void finalize() throws Throwable {
+            this.close();
+            super.finalize();
+        }
+
+        @Override
         public void onCreate(SQLiteDatabase db) {
             db.execSQL(YouTubeVideoEntry.DATABASE_DOWNLOADED_TABLE_CREATE);
             db.execSQL(YouTubeVideoEntry.DATABASE_FAVORITES_TABLE_CREATE);
@@ -126,6 +132,7 @@ public class YouTubeSqlDb {
         public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             onUpgrade(db, oldVersion, newVersion);
         }
+
     }
 
     /**
