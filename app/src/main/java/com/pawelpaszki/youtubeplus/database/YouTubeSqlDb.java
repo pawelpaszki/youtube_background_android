@@ -106,25 +106,25 @@ public class YouTubeSqlDb {
         }
 
         @Override
-        public void finalize() throws Throwable {
-            this.close();
-            super.finalize();
-        }
-
-        @Override
         public void onCreate(SQLiteDatabase db) {
             db.execSQL(YouTubeVideoEntry.DATABASE_DOWNLOADED_TABLE_CREATE);
-            db.execSQL(YouTubeVideoEntry.DATABASE_FAVORITES_TABLE_CREATE);
+            db.close();
+            //db.execSQL(YouTubeVideoEntry.DATABASE_FAVORITES_TABLE_CREATE);
             db.execSQL(YouTubeVideoEntry.DATABASE_RECENTLY_WATCHED_TABLE_CREATE);
+            db.close();
             db.execSQL(YouTubePlaylistEntry.DATABASE_TABLE_CREATE);
+            db.close();
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             db.execSQL(YouTubeVideoEntry.DROP_QUERY_RECENTLY_WATCHED);
-            db.execSQL(YouTubeVideoEntry.DROP_QUERY_FAVORITES);
+            db.close();
+            //db.execSQL(YouTubeVideoEntry.DROP_QUERY_FAVORITES);
             db.execSQL(YouTubeVideoEntry.DROP_QUERY_DOWNLOADED);
+            db.close();
             db.execSQL(YouTubePlaylistEntry.DROP_QUERY);
+            db.close();
             onCreate(db);
         }
 
@@ -273,6 +273,7 @@ public class YouTubeSqlDb {
 
             // Insert the new row, returning the primary key value of the new row. If -1, operation has failed
             return db.insert(YouTubePlaylistEntry.TABLE_NAME, YouTubePlaylistEntry.COLUMN_NAME_NULLABLE, values) > 0;
+
         }
 
         /**
@@ -295,6 +296,7 @@ public class YouTubeSqlDb {
                 list.add(new YouTubePlaylist(title, thumbnailUrl, playlistId, number, status));
             }
             c.close();
+            db.close();
             return list;
         }
 

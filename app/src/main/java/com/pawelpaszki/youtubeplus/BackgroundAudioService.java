@@ -327,10 +327,10 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                                 Intent new_intent = new Intent();
                                 new_intent.setAction(ACTION_SEEKBAR_UPDATE);
                                 new_intent.putExtra("videoId", videoId);
-                                new_intent.putExtra("progress", mMediaPlayer.getCurrentPosition() / 1000);
+                                new_intent.putExtra("progress", mMediaPlayer.getCurrentPosition());
                                 sendBroadcast(new_intent);
                                 mSeekToSet = false;
-                                Log.i("seek value", String.valueOf(mMediaPlayer.getCurrentPosition() / 1000));
+                                Log.i("progress value", String.valueOf(mMediaPlayer.getCurrentPosition()));
                             }
                         }
                     }
@@ -856,7 +856,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                     // Something went wrong we got no urls. Always check this.
                     Toast.makeText(YTApplication.getAppContext(), R.string.failed_playback,
                             Toast.LENGTH_SHORT).show();
-                    return;
+
                 }
                 deviceBandwidthSampler.stopSampling();
                 YtFile ytFile = getBestStream(ytFiles);

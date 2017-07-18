@@ -210,7 +210,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             if(progress != mProgressSet && progress != mPausedAt) {
                 setPauseIcon();
                 setControlsEnabled(true);
-                mDurationSeekbar.setProgress(progress);
+                Log.i("activity progress", String.valueOf(progress));
+                mDurationSeekbar.setProgress(progress / 1000);
             }
 
         }
@@ -555,11 +556,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         }
         if(mPlaybackUpdated != null) {
             unregisterReceiver(mPlaybackUpdated);
-        }
-        try {
-            YouTubeSqlDb.YouTubeDbHelper.getInstance(this).finalize();
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
         }
 
     }

@@ -447,9 +447,14 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 } else {
                     int progress = intent.getIntExtra("progress", 0);
                     Log.i("progress in fragment", String.valueOf(progress));
+                    int mediaPlayerProgress = mediaPlayer.getCurrentPosition();
+                    Log.i("mplayer progress before", String.valueOf(mediaPlayerProgress));
+                    if(progress > 10 && Math.abs(progress - mediaPlayerProgress) > 100) {
+                        mediaPlayer.seekTo(progress);
+                    }
+                    Log.i("mplayer progress after", String.valueOf(mediaPlayerProgress));
                     if(mSeekAdjustmentRequired) {
-                        Log.i("progress ss", String.valueOf(progress));
-                        mediaPlayer.seekTo(progress * 1000);
+                        mediaPlayer.seekTo(progress);
                         mSeekAdjustmentRequired = false;
 
                     }
