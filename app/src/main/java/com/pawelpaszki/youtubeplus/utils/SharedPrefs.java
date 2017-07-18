@@ -5,11 +5,12 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Created by PawelPaszki on 04/07/2017.
+ *
+ * Used to persist certain app properties
  */
 
 public class SharedPrefs {
@@ -28,7 +29,7 @@ public class SharedPrefs {
         return prefs.getBoolean(key, false);
     }
 
-    public static void setDownloadInProgress(String id, boolean value, Context context) {
+    static void setDownloadInProgress(String id, boolean value, Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
         String key = "downloading" + id;
@@ -46,16 +47,14 @@ public class SharedPrefs {
     public static void setVideoCounter(String videoId, int counter, Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
-        String key = videoId;
-        editor.putInt(key, counter);
+        editor.putInt(videoId, counter);
         editor.apply();
     }
 
     // number of playlists with given video
     public static int getVideoCounter(String videoId, Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String key = videoId;
-        return prefs.getInt(key, 0);
+        return prefs.getInt(videoId, 0);
     }
 
     public static void savePlaylistVideoIds(Context context, ArrayList<String> videoIds, String playListName){

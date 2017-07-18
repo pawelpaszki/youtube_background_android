@@ -16,8 +16,6 @@
 package com.pawelpaszki.youtubeplus.fragments;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.LoaderManager;
@@ -31,7 +29,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.pawelpaszki.youtubeplus.MainActivity;
 import com.pawelpaszki.youtubeplus.R;
@@ -40,7 +37,6 @@ import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.interfaces.ItemEventsListener;
 import com.pawelpaszki.youtubeplus.interfaces.OnItemSelected;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
-import com.pawelpaszki.youtubeplus.utils.Config;
 import com.pawelpaszki.youtubeplus.utils.MediaDownloader;
 import com.pawelpaszki.youtubeplus.utils.NetworkConf;
 import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
@@ -59,7 +55,6 @@ import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlayli
  */
 public class SearchFragment extends BaseFragment implements ItemEventsListener<YouTubeVideo> {
 
-    private static final String TAG = "SMEDIC search frag";
     private RecyclerView videosFoundListView;
     private List<YouTubeVideo> searchResultsList;
     private VideosAdapter videoListAdapter;
@@ -151,7 +146,7 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
     /**
      * Search for query on youTube by using YouTube Data API V3
      *
-     * @param query
+     * @param query - searched String
      */
     public void searchQuery(final String query) {
         //check network connectivity

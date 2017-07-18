@@ -12,6 +12,8 @@ import java.io.File;
 
 /**
  * Created by PawelPaszki on 10/07/2017.
+ *
+ * Used to initiate media download
  */
 
 public class MediaDownloader {

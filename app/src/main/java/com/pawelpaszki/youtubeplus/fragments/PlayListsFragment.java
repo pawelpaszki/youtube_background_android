@@ -32,13 +32,11 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.pawelpaszki.youtubeplus.MainActivity;
@@ -62,12 +60,15 @@ import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlayli
 
 /**
  * Created by Stevan Medic on 21.3.16..
+ *
+ * Edited by Pawel Paszki.
+ *
+ * used to create fragment containing custom playlsits
  */
 public class PlayListsFragment extends BaseFragment implements ItemEventsListener<YouTubeVideo> {
 
     private List<YouTubeVideo> customVideos;
 
-    private RecyclerView playListsView;
     private OnItemSelected itemSelected;
     private NoThumbnailAdapter noThumbnailAdapter;
     private Context context;
@@ -95,7 +96,7 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_list, container, false);
-        playListsView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
+        RecyclerView playListsView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         playListsView.setLayoutManager(new LinearLayoutManager(context));
         TypedValue tv = new TypedValue();
         int height;
@@ -108,8 +109,7 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
         final LinearLayout videosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videosContainer.getLayoutParams();
         float density = context.getResources().getDisplayMetrics().density;
-        int topMargin = height + (int) (6 * density);
-        params.topMargin = topMargin;
+        params.topMargin = height + (int) (6 * density);
 
         videosContainer.setLayoutParams(params);
         if(SharedPrefs.getVideoContainerHeight(context) == 0) {
@@ -163,7 +163,7 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
         deletePlayList.setOnClickListener(new AdapterView.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ArrayList<String> playListNames = new ArrayList<String> (SharedPrefs.getPlayListNames(context));
+                ArrayList<String> playListNames = new ArrayList<> (SharedPrefs.getPlayListNames(context));
                 if(playListNames.size() > 0) {
                     String playlistName = mSpinner.getSelectedItem().toString();
                     playListNames.remove(playlistName);

@@ -25,19 +25,12 @@ import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.database.MatrixCursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
-import android.os.StatFs;
 import android.provider.BaseColumns;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -52,30 +45,22 @@ import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.Display;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.VideoView;
 
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.fragments.DownloadedFragment;
@@ -91,23 +76,28 @@ import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
 import com.pawelpaszki.youtubeplus.viewPagers.NonSwipeableViewPager;
 import com.pawelpaszki.youtubeplus.youtube.SuggestionsLoader;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import pub.devrel.easypermissions.EasyPermissions;
-
 import static com.pawelpaszki.youtubeplus.R.layout.suggestions;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_NEXT;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PAUSE;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PLAY;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PLAYBACK_STARTED;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PREVIOUS;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_SEEK;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_SEEKBAR_UPDATE;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_STOP;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_VIDEO_UPDATE;
 import static com.pawelpaszki.youtubeplus.youtube.YouTubeSingleton.getCredential;
 
 /**
  * Activity that manages fragments and action bar
  */
-public class MainActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks,
+public class MainActivity extends AppCompatActivity implements
         OnItemSelected{
 
-    private static final String TAG = "SMEDIC MAIN ACTIVITY";
     private Toolbar toolbar;
     private ViewPager viewPager;
 
@@ -131,7 +121,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private boolean mHasPlaybackStarted;
     private int mProgressSet;
     private int mPausedAt;
-    private int mControlsTouchedAt;
 
     private ArrayList<FloatingActionButton> mControls = new ArrayList<>();
     private FloatingActionButton mGoToDownloads;
@@ -151,15 +140,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private static boolean mControlsTouched;
 
 
-    private static final String ACTION_PLAYBACK_STARTED = "playbackStarted";
-    public static final String ACTION_PLAY = "action_play";
-    public static final String ACTION_PAUSE = "action_pause";
-    public static final String ACTION_NEXT = "action_next";
-    public static final String ACTION_PREVIOUS = "action_previous";
-    public static final String ACTION_SEEK = "action_seek";
-    public static final String ACTION_SEEKBAR_UPDATE = "action_update";
-    public static final String ACTION_VIDEO_UPDATE = "action_video_update";
-    public static final String ACTION_STOP = "action_stop";
+
 
     private BroadcastReceiver mPlaybackStartedReceiver = new BroadcastReceiver() {
         @Override
@@ -169,9 +150,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
             setDuration(intent.getStringExtra("duration"));
             String title = intent.getStringExtra("title");
-
-            Log.i("test ### title", currentlyPlayedFragment);
-            Log.i("test ### ctrl touched", String.valueOf(mControlsTouched));
             if(mControlsTouched) {
                 mControlsTouched = false;
                 if(currentlyPlayedFragment.contains("(DOWNLOADED")) {
@@ -210,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             if(progress != mProgressSet && progress != mPausedAt) {
                 setPauseIcon();
                 setControlsEnabled(true);
-                Log.i("activity progress", String.valueOf(progress));
+                //Log.i("activity progress", String.valueOf(progress));
                 mDurationSeekbar.setProgress(progress / 1000);
             }
 
@@ -276,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                     Intent new_intent = new Intent();
                     new_intent.setAction(ACTION_VIDEO_UPDATE);
                     sendBroadcast(new_intent);
-                    Log.i("setaction", "vid update activity");
+                    //Log.i("setaction", "vid update activity");
                 }
             }
 
@@ -331,7 +309,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             @Override
             public void onClick(View v) {
                 if(mHasPlaybackStarted) {
-                    mControlsTouchedAt = viewPager.getCurrentItem();
                     mControlsTouched = true;
                     sendBroadcast("previous");
                     mDurationSeekbar.setProgress(0);
@@ -366,7 +343,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             @Override
             public void onClick(View v) {
                 if(mHasPlaybackStarted) {
-                    mControlsTouchedAt = viewPager.getCurrentItem();
                     mControlsTouched = true;
                     sendBroadcast("next");
                     setPlayIconAndDisableControls(true);
@@ -414,13 +390,13 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                     // hide keyboard
 //                    InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 //                    inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-                    Log.i("page selected", String.valueOf(j));
+                    //Log.i("page selected", String.valueOf(j));
                     if(j!= 0) {
                         downloadedFragment.stopAllListeners(false);
                     } else {
                         if(!mTitleTextView.getText().toString().contains("(RECENT)") && !mTitleTextView.getText().toString().contains("(SEARCH)") &&
                         !mTitleTextView.getText().toString().contains("(PLAYLISTS)")) {
-                            Log.i("resume listeners", "true");
+                            //Log.i("resume listeners", "true");
                             downloadedFragment.resumeAllListeners();
                         }
 
@@ -506,7 +482,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                     if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
                         if (diffX > 0) {
                             showNavigationButtons();
-                            //TODO show buttons
                         } else {
                             return false;
                         }
@@ -572,7 +547,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         } else {
             mLoopVideo.setColorFilter(Color.argb(255, 255, 255, 255));
         }
-        Log.i("is looping", String.valueOf(SharedPrefs.getIsLooping(MainActivity.this)));
+        //Log.i("is looping", String.valueOf(SharedPrefs.getIsLooping(MainActivity.this)));
 
     }
 
@@ -631,7 +606,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 Intent new_intent = new Intent();
                 new_intent.setAction(ACTION_VIDEO_UPDATE);
                 sendBroadcast(new_intent);
-                Log.i("setaction", "vid update activity");
+                //Log.i("setaction", "vid update activity");
             }
         }, 2000);
 
@@ -651,7 +626,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     }
 
     /**
-     * sets max value of seekbar
+     * sets max value of seekBar
      */
     private void setDuration(String duration) {
         try {
@@ -678,46 +653,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         }
     }
 
-//    /**
-//     * Attempts to set the account used with the API credentials. If an account
-//     * name was previously saved it will use that one; otherwise an account
-//     * picker dialog will be shown to the user. Note that the setting the
-//     * account to use with the credentials object requires the app to have the
-//     * GET_ACCOUNTS permission, which is requested here if it is not already
-//     * present. The AfterPermissionGranted annotation indicates that this
-//     * function will be rerun automatically whenever the GET_ACCOUNTS permission
-//     * is granted.
-//     */
-//    @AfterPermissionGranted(PERMISSIONS)
-//    private void requestPermissions() {
-//        String[] perms = {Manifest.permission.GET_ACCOUNTS, Manifest.permission.READ_PHONE_STATE};
-//        if (EasyPermissions.hasPermissions(this, perms)) {
-//            // Already have permission, do the thing
-//            if (EasyPermissions.hasPermissions(this, Manifest.permission.GET_ACCOUNTS)) {
-//                String accountName = getPreferences(Context.MODE_PRIVATE).getString(PREF_ACCOUNT_NAME, null);
-//                if (accountName != null) {
-//                    getCredential().setSelectedAccountName(accountName);
-//                } else {
-//                    // Start a dialog from which the user can choose an account
-//                    startActivityForResult(
-//                            getCredential().newChooseAccountIntent(),
-//                            REQUEST_ACCOUNT_PICKER);
-//                }
-//            } else {
-//                // Request the GET_ACCOUNTS permission via a user dialog
-//                EasyPermissions.requestPermissions(
-//                        this,
-//                        "This app needs to access your Google account (via Contacts).",
-//                        REQUEST_PERMISSION_GET_ACCOUNTS,
-//                        Manifest.permission.GET_ACCOUNTS);
-//            }
-//        } else {
-//            // Do not have permissions, request them now
-//            EasyPermissions.requestPermissions(this, getString(R.string.all_permissions_request),
-//                    PERMISSIONS, perms);
-//        }
-//    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -735,12 +670,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[], @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
-    }
 
     /**
      * Override super.onNewIntent() so that calls to getIntent() will return the
@@ -757,7 +686,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     /**
      * Handle search intent and queries YouTube for videos
      *
-     * @param intent
+     * @param intent - intent to handle
      */
     private void handleIntent(Intent intent) {
 
@@ -774,7 +703,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     /**
      * Setups viewPager for switching between pages according to the selected tab
      *
-     * @param viewPager
+     * @param viewPager - new ViewPager instance
      */
     private void setupViewPager(ViewPager viewPager) {
 
@@ -792,15 +721,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         viewPager.setAdapter(adapter);
     }
 
-    @Override
-    public void onPermissionsGranted(int requestCode, List<String> perms) {
-        Log.d(TAG, "onPermissionsGranted:");
-    }
 
-    @Override
-    public void onPermissionsDenied(int requestCode, List<String> perms) {
-        Log.d(TAG, "onPermissionsDenied: ");
-    }
 
     @Override
     public void onVideoSelected(YouTubeVideo video) {
@@ -810,7 +731,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         }
         setPlayIconAndDisableControls(true);
         Intent serviceIntent = new Intent(this, BackgroundAudioService.class);
-        serviceIntent.setAction(BackgroundAudioService.ACTION_PLAY);
+        serviceIntent.setAction(ACTION_PLAY);
         serviceIntent.putExtra(Config.YOUTUBE_TYPE, ItemType.YOUTUBE_MEDIA_TYPE_VIDEO);
         serviceIntent.putExtra(Config.YOUTUBE_TYPE_VIDEO, video);
         startService(serviceIntent);
@@ -824,7 +745,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         }
         setPlayIconAndDisableControls(true);
         Intent serviceIntent = new Intent(this, BackgroundAudioService.class);
-        serviceIntent.setAction(BackgroundAudioService.ACTION_PLAY);
+        serviceIntent.setAction(ACTION_PLAY);
         serviceIntent.putExtra(Config.YOUTUBE_TYPE, ItemType.YOUTUBE_MEDIA_TYPE_PLAYLIST);
         serviceIntent.putExtra(Config.YOUTUBE_TYPE_PLAYLIST, (ArrayList) playlist);
         serviceIntent.putExtra(Config.YOUTUBE_TYPE_PLAYLIST_VIDEO_POS, position);
@@ -849,11 +770,11 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     /**
      * Class which provides adapter for fragment pager
      */
-    class ViewPagerAdapter extends FragmentPagerAdapter {
+    private class ViewPagerAdapter extends FragmentPagerAdapter {
         private final List<Fragment> mFragmentList = new ArrayList<>();
         private final List<String> mFragmentTitleList = new ArrayList<>();
 
-        public ViewPagerAdapter(FragmentManager manager) {
+        ViewPagerAdapter(FragmentManager manager) {
             super(manager);
         }
 
@@ -867,7 +788,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             return mFragmentList.size();
         }
 
-        public void addFragment(Fragment fragment, String title) {
+        void addFragment(Fragment fragment, String title) {
             mFragmentList.add(fragment);
             mFragmentTitleList.add(title);
         }
@@ -882,7 +803,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     /**
      * Options menu in action bar
      *
-     * @param menu
+     * @param menu - menu
      * @return
      */
     @Override
@@ -985,7 +906,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     /**
      * Handles selected item from action bar
      *
-     * @param item
+     * @param item - item
      * @return
      */
     @Override

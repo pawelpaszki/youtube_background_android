@@ -26,6 +26,8 @@ import android.support.v7.app.AlertDialog;
 
 /**
  * Created by Stevan Medic on 17.3.16..
+ *
+ * Used to check network status
  */
 public class NetworkConf {
 
@@ -36,7 +38,7 @@ public class NetworkConf {
     }
     /**
      * Checks whether internet connection is available or not
-     * @return
+     * @return boolean flag representing network availability
      */
     public boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager

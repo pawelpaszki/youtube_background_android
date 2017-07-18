@@ -19,25 +19,19 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.SurfaceTexture;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.RemoteException;
-import android.provider.DocumentsContract;
-import android.provider.MediaStore;
 import android.support.v4.media.RatingCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -46,13 +40,7 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.SparseArray;
-import android.view.LayoutInflater;
-import android.view.Surface;
-import android.view.SurfaceView;
-import android.widget.FrameLayout;
-import android.widget.MediaController;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import com.facebook.network.connectionclass.ConnectionClassManager;
 import com.facebook.network.connectionclass.ConnectionQuality;
@@ -66,15 +54,21 @@ import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 import at.huber.youtubeExtractor.VideoMeta;
 import at.huber.youtubeExtractor.YouTubeExtractor;
 import at.huber.youtubeExtractor.YtFile;
-import fm.jiecao.jcvideoplayer_lib.JCVideoPlayerStandard;
+
+import static com.pawelpaszki.youtubeplus.utils.Config.ACITON_VIDEO_CHANGE;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_NEXT;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PAUSE;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PLAY;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PREVIOUS;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_SEEK;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_SEEKBAR_UPDATE;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_STOP;
 
 /**
  * Service class for background youtube playback
@@ -84,16 +78,6 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         MediaPlayer.OnPreparedListener {
 
     private static final String TAG = "SMEDIC service";
-
-    public static final String ACTION_PLAY = "action_play";
-    public static final String ACTION_PAUSE = "action_pause";
-    public static final String ACTION_NEXT = "action_next";
-    public static final String ACTION_PREVIOUS = "action_previous";
-    public static final String ACTION_STOP = "action_stop";
-    public static final String ACTION_SEEK = "action_seek";
-    public static final String ACTION_SEEKBAR_UPDATE = "action_update";
-    public static final String ACITON_VIDEO_CHANGE = "action_change_media";
-
 
     private Handler mSeekBarProgressHandler;
     private boolean mPreviousPressed;
@@ -268,7 +252,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     /**
      * Handles intent (player options play/pause/stop...)
      *
-     * @param intent
+     * @param intent - intent to handle
      */
     private void handleIntent(Intent intent) {
         if (intent == null || intent.getAction() == null)
@@ -357,7 +341,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     /**
      * Handles media - playlists and videos sent from fragments
      *
-     * @param intent
+     * @param intent - intent to handle
      */
     private void handleMedia(Intent intent) {
         ItemType intentMediaType = ItemType.YOUTUBE_MEDIA_NONE;
@@ -546,7 +530,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     /**
      * Updates only large icon in notification panel when bitmap is decoded
      *
-     * @param bitmap
+     * @param bitmap - notification bitmap
      */
     private void updateNotificationLargeIcon(Bitmap bitmap) {
         builder.setLargeIcon(bitmap);
@@ -557,10 +541,10 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     /**
      * Generates specific action with parameters below
      *
-     * @param icon
-     * @param title
-     * @param intentAction
-     * @return
+     * @param icon - icon
+     * @param title - title
+     * @param intentAction - action
+     * @return new notification
      */
     private NotificationCompat.Action generateAction(int icon, String title, String intentAction) {
         Intent intent = new Intent(getApplicationContext(), BackgroundAudioService.class);
@@ -638,8 +622,6 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         startMediaPlayerWithLocalMedia(filename);
     }
 
-    private VideoView videoView;
-
     private void startMediaPlayerWithLocalMedia(final String filename){
         Log.i("got here", "start local");
         try {
@@ -649,7 +631,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                 final File[] files =Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
                 int index = -1;
                 for(int i = 0; i < files.length; i++) {
-                    if(files[i].getAbsolutePath().toString().contains(filename)) {
+                    if(files[i].getAbsolutePath().contains(filename)) {
                         Log.i("file in download", files[i].getAbsolutePath());
                         index = i;
                         break;
@@ -661,7 +643,6 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                     mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                     Log.i("duration", String.valueOf(mMediaPlayer.getDuration()));
                     mMediaPlayer.setOnCompletionListener(this);
-                    final int anIndex = index;
                     mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                         @Override
                         public void onPrepared(MediaPlayer mp) {
@@ -780,7 +761,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     /**
      * Seeks to specific time
      *
-     * @param seekTo
+     * @param seekTo - progress vlue
      */
     private void seekVideo(int seekTo) {
         mMediaPlayer.seekTo(seekTo);

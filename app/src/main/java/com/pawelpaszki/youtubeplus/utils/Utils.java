@@ -1,15 +1,10 @@
 package com.pawelpaszki.youtubeplus.utils;
 
-import android.content.Context;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Display;
-import android.view.WindowManager;
 
 import com.google.api.services.youtube.model.SearchResult;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -25,7 +20,7 @@ public class Utils {
      * Converting ISO8601 formatted duration to normal readable time
      */
     public static String convertISO8601DurationToNormalTime(String isoTime) {
-        String formattedTime = new String();
+        String formattedTime = "";
 
         if (isoTime.contains("H") && isoTime.contains("M") && isoTime.contains("S")) {
             String hours = isoTime.substring(isoTime.indexOf('T') + 1, isoTime.indexOf('H'));
@@ -70,17 +65,14 @@ public class Utils {
 
     /**
      * Prints videos nicely formatted
-     * @param videos
+     * @param videos - list of videos
      */
     public static void prettyPrintVideos(List<YouTubeVideo> videos) {
         Log.d(TAG, "=============================================================");
         Log.d(TAG, "\t\tTotal Videos: " + videos.size());
         Log.d(TAG, "=============================================================\n");
 
-        Iterator<YouTubeVideo> playlistEntries = videos.iterator();
-
-        while (playlistEntries.hasNext()) {
-            YouTubeVideo playlistItem = playlistEntries.next();
+        for (YouTubeVideo playlistItem : videos) {
             Log.d(TAG, " video name  = " + playlistItem.getTitle());
             Log.d(TAG, " video id    = " + playlistItem.getId());
             Log.d(TAG, " duration    = " + playlistItem.getDuration());
@@ -91,7 +83,7 @@ public class Utils {
 
     /**
      * Prints video nicely formatted
-     * @param playlistEntry
+     * @param playlistEntry - playlist item
      */
     public static void prettyPrintVideoItem(YouTubeVideo playlistEntry) {
         Log.d(TAG, "*************************************************************");

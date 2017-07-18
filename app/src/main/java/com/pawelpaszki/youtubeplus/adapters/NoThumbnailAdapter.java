@@ -20,12 +20,12 @@ import java.util.List;
 
 /**
  * Created by PawelPaszki on 07/07/2017.
+ * This adapter creates playlist items without the thumbnail
  */
 
 public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.ViewHolder>
          {
 
-    private static final String TAG = "SMEDIC";
     private Context context;
     private final List<YouTubeVideo> list;
     private String mFragment;
@@ -65,18 +65,22 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
                 builder.setSingleChoiceItems(options, -1, new DialogInterface
                         .OnClickListener() {
                     public void onClick(DialogInterface dialog, int item) {
-                        if(options[item].equals("add to playlist")) {
-                            if (itemEventsListener != null) {
-                                itemEventsListener.onAddClicked(video);
-                            }
-                        } else if (options[item].equals("remove from the list")) {
-                            if (itemEventsListener != null) {
-                                itemEventsListener.onRemoveClicked(video);
-                            }
-                        } else if (options[item].equals("download")) {
-                            if (itemEventsListener != null) {
-                                itemEventsListener.onDownloadClicked(video);
-                            }
+                        switch (options[item]) {
+                            case "add to playlist":
+                                if (itemEventsListener != null) {
+                                    itemEventsListener.onAddClicked(video);
+                                }
+                                break;
+                            case "remove from the list":
+                                if (itemEventsListener != null) {
+                                    itemEventsListener.onRemoveClicked(video);
+                                }
+                                break;
+                            case "download":
+                                if (itemEventsListener != null) {
+                                    itemEventsListener.onDownloadClicked(video);
+                                }
+                                break;
                         }
                         dialog.dismiss();
 
@@ -110,7 +114,7 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
         TextView title;
         TextView duration;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.item_title);
             duration = (TextView) itemView.findViewById(R.id.item_duration);
@@ -121,18 +125,4 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
         itemEventsListener = listener;
     }
 
-     private String checkMediaType(YouTubeVideo video) {
-         String filename = video.getId();
-         File[] files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
-         for (File file : files) {
-             if (file.getAbsolutePath().contains(filename)) {
-                 if(file.getAbsolutePath().endsWith(".mp4")) {
-                     return "video";
-                 } else if (file.getAbsolutePath().endsWith(".mp3")) {
-                     return "audio";
-                 }
-             }
-         }
-         return null;
-     }
 }

@@ -23,11 +23,13 @@ import at.huber.youtubeExtractor.YtFile;
 
 /**
  * Created by PawelPaszki on 04/07/2017.
+ *
+ * Used to extract YouTube url and download media, if possible
  */
 
-public class MediaStorageHandler {
+class MediaStorageHandler {
 
-    public static void downloadVideo(final YouTubeVideo video, final Context context) {
+    static void downloadVideo(final YouTubeVideo video, final Context context) {
         String youtubeLink = Config.YOUTUBE_BASE_URL + video.getId();
         new YouTubeExtractor(context) {
 
@@ -44,7 +46,7 @@ public class MediaStorageHandler {
                         iTags.add(itag);
                 }
                 YtFile ytFile;
-                int index = 0;
+                int index;
 
                 if(iTags.contains(22)) {
                     ytFile = ytFiles.get(22);

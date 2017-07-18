@@ -19,6 +19,9 @@ import java.util.Set;
 
 /**
  * Created by PawelPaszki on 11/07/2017.
+ *
+ * This dialog handles adding items to playlist
+ *
  */
 
 public class AddToPlayListDialog {
@@ -29,7 +32,6 @@ public class AddToPlayListDialog {
             playLists = SharedPrefs.getPlayListNames(context).toArray(playLists);
             final String[] radioButtonOptions = playLists;
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            //alt_bld.setIcon(R.drawable.icon);
             builder.setTitle("Select playlist");
             builder.setSingleChoiceItems(radioButtonOptions, -1, new DialogInterface
                     .OnClickListener() {

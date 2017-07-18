@@ -17,7 +17,6 @@ package com.pawelpaszki.youtubeplus.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -27,24 +26,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.pawelpaszki.youtubeplus.MainActivity;
 import com.pawelpaszki.youtubeplus.R;
-import com.pawelpaszki.youtubeplus.YTApplication;
 import com.pawelpaszki.youtubeplus.adapters.VideosAdapter;
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.interfaces.ItemEventsListener;
 import com.pawelpaszki.youtubeplus.interfaces.OnItemSelected;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
-import com.pawelpaszki.youtubeplus.utils.Config;
 import com.pawelpaszki.youtubeplus.utils.MediaDownloader;
-import com.pawelpaszki.youtubeplus.utils.MediaStorageHandler;
 
-import java.io.File;
 import java.util.ArrayList;
 
 import static com.pawelpaszki.youtubeplus.MainActivity.setmControlsTouched;
@@ -59,7 +51,6 @@ public class RecentlyWatchedFragment extends BaseFragment implements
 
     private ArrayList<YouTubeVideo> recentlyPlayedVideos;
 
-    private RecyclerView recentlyPlayedListView;
     private VideosAdapter videoListAdapter;
     private OnItemSelected itemSelected;
     private Context context;
@@ -98,7 +89,7 @@ public class RecentlyWatchedFragment extends BaseFragment implements
         float density = context.getResources().getDisplayMetrics().density;
         params.topMargin = height + (int) (6 * density);
         videosContainer.setLayoutParams(params);
-        recentlyPlayedListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
+        RecyclerView recentlyPlayedListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         recentlyPlayedListView.setLayoutManager(new LinearLayoutManager(context));
         videoListAdapter = new VideosAdapter(context, recentlyPlayedVideos, "recentlyWatched");
         videoListAdapter.setOnItemEventsListener(this);

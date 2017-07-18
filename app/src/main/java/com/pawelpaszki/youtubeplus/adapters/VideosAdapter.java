@@ -46,10 +46,8 @@ import java.util.List;
  */
 public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder> {
 
-    private static final String TAG = "SMEDIC";
     private Context context;
     private final List<YouTubeVideo> list;
-    private boolean[] itemChecked;
     private String mFragment;
     private ItemEventsListener<YouTubeVideo> itemEventsListener;
 
@@ -57,7 +55,6 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
         super();
         this.list = list;
         this.context = context;
-        this.itemChecked = new boolean[(int) Config.NUMBER_OF_VIDEOS_RETURNED];
         this.mFragment = fragment;
     }
 
@@ -89,18 +86,22 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
                 builder.setSingleChoiceItems(options, -1, new DialogInterface
                         .OnClickListener() {
                     public void onClick(DialogInterface dialog, int item) {
-                        if(options[item].equals("add to playlist")) {
-                            if (itemEventsListener != null) {
-                                itemEventsListener.onAddClicked(video);
-                            }
-                        } else if (options[item].equals("remove from the list")) {
-                            if (itemEventsListener != null) {
-                                itemEventsListener.onRemoveClicked(video);
-                            }
-                        } else if (options[item].equals("download")) {
-                            if (itemEventsListener != null) {
-                                itemEventsListener.onDownloadClicked(video);
-                            }
+                        switch (options[item]) {
+                            case "add to playlist":
+                                if (itemEventsListener != null) {
+                                    itemEventsListener.onAddClicked(video);
+                                }
+                                break;
+                            case "remove from the list":
+                                if (itemEventsListener != null) {
+                                    itemEventsListener.onRemoveClicked(video);
+                                }
+                                break;
+                            case "download":
+                                if (itemEventsListener != null) {
+                                    itemEventsListener.onDownloadClicked(video);
+                                }
+                                break;
                         }
                         dialog.dismiss();
 
@@ -150,7 +151,7 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
         TextView duration;
         TextView viewCount;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             super(itemView);
             thumbnail = (ImageView) itemView.findViewById(R.id.video_thumbnail);
             title = (TextView) itemView.findViewById(R.id.video_title);

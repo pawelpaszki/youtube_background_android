@@ -1,22 +1,14 @@
 package com.pawelpaszki.youtubeplus.fragments;
 
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.Context;
-import android.content.ContextWrapper;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.ActivityInfo;
 import android.media.AudioManager;
-import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -33,7 +25,6 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.MediaController;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.pawelpaszki.youtubeplus.BackgroundAudioService;
@@ -41,10 +32,8 @@ import com.pawelpaszki.youtubeplus.MainActivity;
 import com.pawelpaszki.youtubeplus.R;
 import com.pawelpaszki.youtubeplus.YTApplication;
 import com.pawelpaszki.youtubeplus.adapters.NoThumbnailAdapter;
-import com.pawelpaszki.youtubeplus.adapters.VideosAdapter;
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.interfaces.ItemEventsListener;
-import com.pawelpaszki.youtubeplus.interfaces.OnItemSelected;
 import com.pawelpaszki.youtubeplus.model.ItemType;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 import com.pawelpaszki.youtubeplus.utils.Config;
@@ -56,18 +45,25 @@ import java.util.Iterator;
 
 import static com.pawelpaszki.youtubeplus.MainActivity.setmControlsTouched;
 import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlaylistSelectionDialog;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACITON_VIDEO_CHANGE;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PAUSE;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PLAY;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_SEEK;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_SEEKBAR_UPDATE;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_STOP;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_VIDEO_UPDATE;
 
 /**
  * Created by PawelPaszki on 04/07/2017.
+ *
+ * Used to handle downloaded media
  */
 
 public class DownloadedFragment extends BaseFragment implements ItemEventsListener<YouTubeVideo>, SurfaceHolder.Callback, MediaPlayer.OnPreparedListener, MediaController.MediaPlayerControl, MediaPlayer.OnCompletionListener {
 
     private ArrayList<YouTubeVideo> downloadedVideos;
 
-    private RecyclerView downloadedListView;
     private NoThumbnailAdapter videoListAdapter;
-    private OnItemSelected itemSelected;
     private Context context;
     private int mContainerHeight;
     private int mContainerWidth;
@@ -101,7 +97,6 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         vidHolder.addCallback(this);
         mVideosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
         setPlayListSize(true);
-//        if(SharedPrefs.getVideoContainerHeight(context) == 0) {
         mVideosContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
                 public void onGlobalLayout() {
@@ -113,7 +108,6 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                     mVideosContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
 
                     android.widget.FrameLayout.LayoutParams params = new android.widget.FrameLayout.LayoutParams(mContainerWidth, mContainerWidth * 3/4);
-                    //params.topMargin = mTopMargin;
 
                     vidSurface.setLayoutParams(params);
                 }
@@ -136,7 +130,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 }
             }
         });
-        downloadedListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
+        RecyclerView downloadedListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         downloadedListView.setLayoutManager(new LinearLayoutManager(context));
         videoListAdapter = new NoThumbnailAdapter(context, downloadedVideos, "downloadedFragment");
         videoListAdapter.setOnItemEventsListener(this);
@@ -207,7 +201,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 getActivity().unregisterReceiver(mStopReceiver);
             }
             if(mediaPlayer != null) {
-                stopPlayer(resetTitleTextView);
+                stopPlayer();
             }
         }
         mReceiversRegistered = false;
@@ -216,14 +210,14 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     @Override
     public void onResume() {
         super.onResume();
-        Log.i("on resume", "downloaded");
+        //Log.i("on resume", "downloaded");
         resumeAllListeners();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        stopAllListeners(true);;
+        stopAllListeners(true);
 
     }
 
@@ -245,7 +239,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     public void onDetach() {
         super.onDetach();
         if(mediaPlayer != null) {
-            stopPlayer(true);
+            stopPlayer();
         }
         this.context = null;
     }
@@ -275,24 +269,24 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
 
     @Override
     public void onAddClicked(YouTubeVideo video) {
-        Log.i("add clicked","download fragment");
+        //Log.i("add clicked","download fragment");
         showPlaylistSelectionDialog(context, video);
     }
 
 
     @Override
     public void onItemClick(final YouTubeVideo video) {
-        Log.i("item clicked", "downloaded");
+        //Log.i("item clicked", "downloaded");
         setmControlsTouched(false);
         if (fileExists(video)) {
             Intent serviceIntent = new Intent(getActivity(), BackgroundAudioService.class);
-            serviceIntent.setAction(BackgroundAudioService.ACTION_PLAY);
+            serviceIntent.setAction(ACTION_PLAY);
             serviceIntent.putExtra(Config.YOUTUBE_TYPE, ItemType.MEDIA_LOCAL);
             serviceIntent.putExtra(Config.YOUTUBE_TYPE_VIDEO, video);
             serviceIntent.putExtra(Config.LOCAL_MEDIA_FILEAME, video.getId());
             serviceIntent.putExtra(Config.YOUTUBE_TYPE_PLAYLIST, (ArrayList) downloadedVideos);
             getActivity().startService(serviceIntent);
-            startVideo(video, -1);
+            startVideo(video);
         } else if (SharedPrefs.getDownloadInProgress(context, video.getId())) {
             Toast.makeText(YTApplication.getAppContext(), "Media is still being downloaded",
                     Toast.LENGTH_SHORT).show();
@@ -308,7 +302,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
 
     }
 
-    private void stopPlayer(boolean resetTitleTextView) {
+    private void stopPlayer() {
         if(mediaPlayer != null) {
             mediaPlayer.reset();
             mediaPlayer.stop();
@@ -320,7 +314,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         }
     }
 
-    private void startVideo(YouTubeVideo video, int progress) {
+    private void startVideo(YouTubeVideo video) {
 
         try {
             final File[] files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
@@ -355,14 +349,6 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     private MediaPlayer mediaPlayer;
     private SurfaceHolder vidHolder;
     private SurfaceView vidSurface;
-    private MediaController mController;
-    public static final String ACTION_PLAY = "action_play";
-    public static final String ACTION_PAUSE = "action_pause";
-    public static final String ACTION_STOP = "action_stop";
-    public static final String ACTION_SEEK = "action_seek";
-    public static final String ACITON_VIDEO_CHANGE = "action_change_media";
-    public static final String ACTION_SEEKBAR_UPDATE = "action_update";
-    public static final String ACTION_VIDEO_UPDATE = "action_video_update";
 
     private BroadcastReceiver mVideoUpdateReceiver = new BroadcastReceiver() {
         @Override
@@ -416,7 +402,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         if (intent == null || intent.getAction() == null)
             return;
         String action = intent.getAction();
-        Log.i("action", action);
+        //Log.i("action", action);
         if (action.equalsIgnoreCase(ACTION_PLAY)) {
             if(mediaPlayer!= null) {
                 mediaPlayer.start();
@@ -429,7 +415,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             String value = intent.getStringExtra("videoId");
                 for (YouTubeVideo video : downloadedVideos) {
                     if (video.getId().equals(value)) {
-                        startVideo(video, -1);
+                        startVideo(video);
                         break;
                     }
                 }
@@ -437,10 +423,9 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             if(((MainActivity)getActivity()).getmTitleTextView().getText().toString().contains("(DOWNLOADED")) {
                 if(mediaPlayer == null) {
                     String value = intent.getStringExtra("videoId");
-                    int progress = intent.getIntExtra("progress", -1);
                     for (YouTubeVideo video : downloadedVideos) {
                         if (video.getId().equals(value)) {
-                            startVideo(video, progress);
+                            startVideo(video);
                             break;
                         }
                     }
@@ -449,7 +434,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                     Log.i("progress in fragment", String.valueOf(progress));
                     int mediaPlayerProgress = mediaPlayer.getCurrentPosition();
                     Log.i("mplayer progress before", String.valueOf(mediaPlayerProgress));
-                    if(progress > 10 && Math.abs(progress - mediaPlayerProgress) > 100) {
+                    if(progress > 10 && Math.abs(progress - mediaPlayerProgress) > 300) {
                         mediaPlayer.seekTo(progress);
                     }
                     Log.i("mplayer progress after", String.valueOf(mediaPlayerProgress));
@@ -461,7 +446,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 }
             }
         } else if (action.equalsIgnoreCase(ACTION_STOP)) {
-            stopPlayer(true);
+            stopPlayer();
         } else if (action.equalsIgnoreCase(ACTION_SEEK)) {
             int value = intent.getIntExtra("seekTo", 0);
             if(mediaPlayer!= null) {
@@ -469,7 +454,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             }
         } else if (action.equalsIgnoreCase(ACTION_VIDEO_UPDATE)) {
             mSeekAdjustmentRequired = true;
-            Log.i("setaction", "vid update fragment");
+            //Log.i("setaction", "vid update fragment");
         }
     }
 
@@ -520,7 +505,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         setVideoSize();
         vidSurface.bringToFront();
         vidSurface.requestFocus();
-        mController = new MediaController(context);
+        MediaController mController = new MediaController(context);
         mController.setMediaPlayer(this);
         mController.setAnchorView(vidSurface);
 
@@ -641,7 +626,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        stopPlayer(true);
+        stopPlayer();
     }
 }
 
