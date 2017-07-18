@@ -46,7 +46,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.pawelpaszki.youtubeplus.MainActivity.setmControlsTouched;
+import static com.pawelpaszki.youtubeplus.MainActivity.SEARCH;
+import static com.pawelpaszki.youtubeplus.MainActivity.fragmentName;
 import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlaylistSelectionDialog;
 
 /**
@@ -197,10 +198,11 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
 
     @Override
     public void onItemClick(YouTubeVideo video) {
+        fragmentName = SEARCH;
         YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).create(video);
         //itemSelected.onVideoSelected(video);
         itemSelected.onPlaylistSelected(searchResultsList, searchResultsList.indexOf(video));
-        setmControlsTouched(false);
+
 
     }
 

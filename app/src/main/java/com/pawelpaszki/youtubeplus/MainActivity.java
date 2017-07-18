@@ -58,6 +58,7 @@ import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -133,15 +134,6 @@ public class MainActivity extends AppCompatActivity implements
     private PlayListsFragment playListsFragment;
     private DownloadedFragment downloadedFragment;
 
-    public static void setmControlsTouched(boolean mControlsTouched) {
-        MainActivity.mControlsTouched = mControlsTouched;
-    }
-
-    private static boolean mControlsTouched;
-
-
-
-
     private BroadcastReceiver mPlaybackStartedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -149,40 +141,10 @@ public class MainActivity extends AppCompatActivity implements
 
             setDuration(intent.getStringExtra("duration"));
             String title = intent.getStringExtra("title");
-            if(mControlsTouched) {
-                mControlsTouched = false;
-                switch (fragmentName) {
-                    case DOWNLOADED:
-                        fragmentName = DOWNLOADED;
-                        break;
-                    case PLAYLISTS:
-                        fragmentName = PLAYLISTS;
-                        break;
-                    case RECENT:
-                        fragmentName = RECENT;
-                        break;
-                    case SEARCH:
-                        fragmentName = SEARCH;
-                        break;
-                }
-            } else {
-                switch(viewPager.getCurrentItem()) {
-                    case 0:
-                        fragmentName = DOWNLOADED;
-                        break;
-                    case 1:
-                        fragmentName = PLAYLISTS;
-                        break;
-                    case 2:
-                        fragmentName = RECENT;
-                        break;
-                    case 3:
-                        fragmentName = SEARCH;
-                        break;
-                }
-            }
             mTitleTextView.setText(title);
             mTitleTextView.setSelected(true);
+            setMediaPlayedIcon();
+
         }
     };
 
@@ -193,9 +155,12 @@ public class MainActivity extends AppCompatActivity implements
             //Log.i("progress received", String.valueOf(progress));
             if(progress != mProgressSet && progress != mPausedAt) {
                 setPauseIcon();
-                setControlsEnabled(true);
+
                 //Log.i("activity progress", String.valueOf(progress));
                 mDurationSeekbar.setProgress(progress / 1000);
+                if (progress > 2000) {
+                    setControlsEnabled(true);
+                }
             }
 
         }
@@ -206,6 +171,8 @@ public class MainActivity extends AppCompatActivity implements
     private boolean mControlsVisible;
     private FloatingActionButton mHideControls;
     private RelativeLayout mHomeContainer;
+    private LinearLayout mMediaIndicator;
+    private ImageView mListIndicator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -220,6 +187,8 @@ public class MainActivity extends AppCompatActivity implements
         YouTubeSqlDb.getInstance().init(this);
 
         mTitleTextView = (TextView) findViewById(R.id.title);
+        mMediaIndicator = (LinearLayout) findViewById(R.id.list_indicator);
+        mListIndicator = (ImageView) mMediaIndicator.findViewById(R.id.list_icon);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -302,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements
                     //Log.i("progress set", String.valueOf(mDurationSeekbar.getProgress()));
                     mProgressSet = mDurationSeekbar.getProgress();
                     sendBroadcast("seek");
-                    if(viewPager.getCurrentItem() != 0) {
+                    if(!fragmentName.equals(DOWNLOADED)) {
                         setPlayIconAndDisableControls(true);
                     }
                 }
@@ -315,7 +284,6 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
                 if(mHasPlaybackStarted) {
-                    mControlsTouched = true;
                     sendBroadcast("previous");
                     mDurationSeekbar.setProgress(0);
                     setPlayIconAndDisableControls(true);
@@ -349,7 +317,7 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
                 if(mHasPlaybackStarted) {
-                    mControlsTouched = true;
+                    Log.i("button pressed", "next");
                     sendBroadcast("next");
                     setPlayIconAndDisableControls(true);
                     mDurationSeekbar.setProgress(0);
@@ -365,6 +333,7 @@ public class MainActivity extends AppCompatActivity implements
                     sendBroadcast("stop");
                     setPlayIconAndDisableControls(true);
                     mDurationSeekbar.setProgress(0);
+                    mMediaIndicator.setVisibility(View.GONE);
                 }
             }
         });
@@ -455,6 +424,35 @@ public class MainActivity extends AppCompatActivity implements
         params.height = height;
         toolbar.setLayoutParams(params);
 
+    }
+
+    private void setMediaPlayedIcon() {
+        Log.i("fragment name", fragmentName);
+        if(mMediaIndicator.getVisibility() != View.INVISIBLE) {
+            mMediaIndicator.setVisibility(View.VISIBLE);
+        }
+        Resources res = getResources();
+        Drawable icon;
+        switch(fragmentName) {
+            case PLAYLISTS:
+                icon = res.getDrawable(R.drawable.ic_action_playlist);
+                break;
+            case RECENT:
+                icon = res.getDrawable(R.drawable.ic_recently_wached);
+                break;
+            case SEARCH:
+                icon = res.getDrawable(R.drawable.ic_search);
+                break;
+            case DOWNLOADED:
+            default:
+                icon = res.getDrawable(R.drawable.ic_downloaded);
+                break;
+
+        }
+        if(icon != null) {
+            mListIndicator.setImageDrawable(icon);
+            mListIndicator.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#980000")));
+        }
     }
 
     @Override
@@ -649,7 +647,6 @@ public class MainActivity extends AppCompatActivity implements
                 Resources res = getResources();
                 Drawable pause = res.getDrawable(R.drawable.ic_pause);
                 mPlay.setImageDrawable(pause);
-                setControlsEnabled(true);
                 mIsPlaying = true;
                 mHasPlaybackStarted = true;
             }

@@ -286,7 +286,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                     mSeekBarProgressHandler = null;
                 }
             }
-            stopSelf();
+            //stopSelf();
         } else if (action.equalsIgnoreCase(ACTION_SEEK)) {
             int value = intent.getIntExtra("seekTo", 0);
                 seekVideo(value * 1000);

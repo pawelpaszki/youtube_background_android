@@ -39,7 +39,8 @@ import com.pawelpaszki.youtubeplus.utils.MediaDownloader;
 
 import java.util.ArrayList;
 
-import static com.pawelpaszki.youtubeplus.MainActivity.setmControlsTouched;
+import static com.pawelpaszki.youtubeplus.MainActivity.RECENT;
+import static com.pawelpaszki.youtubeplus.MainActivity.fragmentName;
 import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlaylistSelectionDialog;
 
 /**
@@ -153,7 +154,7 @@ public class RecentlyWatchedFragment extends BaseFragment implements
 
     @Override
     public void onItemClick(YouTubeVideo video) {
-        setmControlsTouched(false);
+        fragmentName = RECENT;
         itemSelected.onPlaylistSelected(recentlyPlayedVideos, recentlyPlayedVideos.indexOf(video));
     }
 

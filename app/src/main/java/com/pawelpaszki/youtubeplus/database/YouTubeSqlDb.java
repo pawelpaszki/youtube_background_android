@@ -108,23 +108,17 @@ public class YouTubeSqlDb {
         @Override
         public void onCreate(SQLiteDatabase db) {
             db.execSQL(YouTubeVideoEntry.DATABASE_DOWNLOADED_TABLE_CREATE);
-            db.close();
-            //db.execSQL(YouTubeVideoEntry.DATABASE_FAVORITES_TABLE_CREATE);
+            db.execSQL(YouTubeVideoEntry.DATABASE_CUSTOM_TABLE_CREATE);
             db.execSQL(YouTubeVideoEntry.DATABASE_RECENTLY_WATCHED_TABLE_CREATE);
-            db.close();
             db.execSQL(YouTubePlaylistEntry.DATABASE_TABLE_CREATE);
-            db.close();
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             db.execSQL(YouTubeVideoEntry.DROP_QUERY_RECENTLY_WATCHED);
-            db.close();
-            //db.execSQL(YouTubeVideoEntry.DROP_QUERY_FAVORITES);
+            db.execSQL(YouTubeVideoEntry.DROP_QUERY_CUSTOM);
             db.execSQL(YouTubeVideoEntry.DROP_QUERY_DOWNLOADED);
-            db.close();
             db.execSQL(YouTubePlaylistEntry.DROP_QUERY);
-            db.close();
             onCreate(db);
         }
 
@@ -343,7 +337,7 @@ public class YouTubeSqlDb {
                         COLUMN_THUMBNAIL_URL + " TEXT," +
                         COLUMN_VIEWS_NUMBER + " TEXT)";
 
-        private static final String DATABASE_FAVORITES_TABLE_CREATE =
+        private static final String DATABASE_CUSTOM_TABLE_CREATE =
                 "CREATE TABLE " + CUSTOM_TABLE_NAME + "(" +
                         COLUMN_ENTRY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                         COLUMN_VIDEO_ID + " TEXT NOT NULL UNIQUE," +
@@ -362,7 +356,7 @@ public class YouTubeSqlDb {
                         COLUMN_VIEWS_NUMBER + " TEXT)";
 
         public static final String DROP_QUERY_RECENTLY_WATCHED = "DROP TABLE " + RECENTLY_WATCHED_TABLE_NAME;
-        public static final String DROP_QUERY_FAVORITES = "DROP TABLE " + CUSTOM_TABLE_NAME;
+        public static final String DROP_QUERY_CUSTOM = "DROP TABLE " + CUSTOM_TABLE_NAME;
         public static final String DROP_QUERY_DOWNLOADED = "DROP TABLE " + DOWNLOADED_TABLE_NAME;
     }
 

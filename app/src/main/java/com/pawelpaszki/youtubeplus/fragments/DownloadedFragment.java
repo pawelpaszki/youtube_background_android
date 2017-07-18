@@ -45,7 +45,6 @@ import java.util.Iterator;
 
 import static com.pawelpaszki.youtubeplus.MainActivity.DOWNLOADED;
 import static com.pawelpaszki.youtubeplus.MainActivity.fragmentName;
-import static com.pawelpaszki.youtubeplus.MainActivity.setmControlsTouched;
 import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlaylistSelectionDialog;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACITON_VIDEO_CHANGE;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PAUSE;
@@ -273,7 +272,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     @Override
     public void onItemClick(final YouTubeVideo video) {
         //Log.i("item clicked", "downloaded");
-        setmControlsTouched(false);
+        fragmentName = DOWNLOADED;
         if (fileExists(video)) {
             Intent serviceIntent = new Intent(getActivity(), BackgroundAudioService.class);
             serviceIntent.setAction(ACTION_PLAY);
@@ -400,21 +399,30 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         String action = intent.getAction();
         //Log.i("action", action);
         if (action.equalsIgnoreCase(ACTION_PLAY)) {
-            if(mediaPlayer!= null) {
-                mediaPlayer.start();
+            if (fragmentName.equals(DOWNLOADED)) {
+                if (mediaPlayer != null) {
+                    mediaPlayer.start();
+                }
+            } else {
+                if (mediaPlayer != null) {
+                    stopPlayer();
+                }
             }
         } else if (action.equalsIgnoreCase(ACTION_PAUSE)) {
-            if(mediaPlayer!= null) {
+            if(mediaPlayer!= null && fragmentName.equals(DOWNLOADED)) {
                 mediaPlayer.pause();
             }
         } else if (action.equalsIgnoreCase(ACITON_VIDEO_CHANGE)) {
-            String value = intent.getStringExtra("videoId");
+            if(fragmentName.equals(DOWNLOADED)) {
+                String value = intent.getStringExtra("videoId");
                 for (YouTubeVideo video : downloadedVideos) {
                     if (video.getId().equals(value)) {
                         startVideo(video);
                         break;
                     }
                 }
+            }
+
         } else if (action.equalsIgnoreCase(ACTION_SEEKBAR_UPDATE)) {
             if(fragmentName.equals(DOWNLOADED)) {
                 if(mediaPlayer == null) {
@@ -440,13 +448,19 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
 
                     }
                 }
+            } else {
+                if (mediaPlayer != null) {
+                    stopPlayer();
+                }
             }
         } else if (action.equalsIgnoreCase(ACTION_STOP)) {
-            stopPlayer();
+            if (mediaPlayer != null) {
+                stopPlayer();
+            }
         } else if (action.equalsIgnoreCase(ACTION_SEEK)) {
             int value = intent.getIntExtra("seekTo", 0);
-            if(mediaPlayer!= null) {
-                mediaPlayer.seekTo(value * 1000);
+            if(mediaPlayer!= null && fragmentName.equals(DOWNLOADED)) {
+                mediaPlayer.seekTo(value);
             }
         } else if (action.equalsIgnoreCase(ACTION_VIDEO_UPDATE)) {
             mSeekAdjustmentRequired = true;

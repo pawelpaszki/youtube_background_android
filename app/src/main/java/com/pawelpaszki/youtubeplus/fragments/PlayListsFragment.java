@@ -55,7 +55,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.pawelpaszki.youtubeplus.MainActivity.setmControlsTouched;
+import static com.pawelpaszki.youtubeplus.MainActivity.DOWNLOADED;
+import static com.pawelpaszki.youtubeplus.MainActivity.PLAYLISTS;
+import static com.pawelpaszki.youtubeplus.MainActivity.fragmentName;
 import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlaylistSelectionDialog;
 
 /**
@@ -372,9 +374,10 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
 
     @Override
     public void onItemClick(YouTubeVideo video) {
+        fragmentName = PLAYLISTS;
         YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).create(video);
         itemSelected.onPlaylistSelected(customVideos, customVideos.indexOf(video));
-        setmControlsTouched(false);
+
 
     }
 
