@@ -43,6 +43,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import static com.pawelpaszki.youtubeplus.MainActivity.DOWNLOADED;
+import static com.pawelpaszki.youtubeplus.MainActivity.fragmentName;
 import static com.pawelpaszki.youtubeplus.MainActivity.setmControlsTouched;
 import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlaylistSelectionDialog;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACITON_VIDEO_CHANGE;
@@ -221,12 +223,6 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
 
     }
 
-    public void setTitle(String title) {
-        String aTitle = title + " " + getString(R.string.downloaded_tab);
-        ((MainActivity)getActivity()).getmTitleTextView().setText(aTitle);
-        ((MainActivity)getActivity()).getmTitleTextView().setSelected(true);
-    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -247,7 +243,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     @Override
     public void onRemoveClicked(YouTubeVideo video) {
         Log.i("remove clicked","true");
-        if(!((MainActivity)getActivity()).getmTitleTextView().getText().toString().contains(video.getTitle())) {
+        if(!fragmentName.contains(video.getTitle())) {
             downloadedVideos.remove(video);
             String filename = video.getId();
             File[] files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
@@ -420,7 +416,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                     }
                 }
         } else if (action.equalsIgnoreCase(ACTION_SEEKBAR_UPDATE)) {
-            if(((MainActivity)getActivity()).getmTitleTextView().getText().toString().contains("(DOWNLOADED")) {
+            if(fragmentName.equals(DOWNLOADED)) {
                 if(mediaPlayer == null) {
                     String value = intent.getStringExtra("videoId");
                     for (YouTubeVideo video : downloadedVideos) {

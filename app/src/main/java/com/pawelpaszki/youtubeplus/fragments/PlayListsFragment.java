@@ -348,12 +348,6 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
         this.context = null;
     }
 
-    public void setTitle(String title) {
-        String aTitle = title + " " + getString(R.string.playlists_tab);
-        ((MainActivity)getActivity()).getmTitleTextView().setText(aTitle);
-        ((MainActivity)getActivity()).getmTitleTextView().setSelected(true);
-    }
-
     @Override
     public void onAddClicked(YouTubeVideo video) {
         showPlaylistSelectionDialog(context, video);

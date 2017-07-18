@@ -137,12 +137,6 @@ public class RecentlyWatchedFragment extends BaseFragment implements
         this.context = null;
     }
 
-    public void setTitle(String title) {
-        String aTitle = title + " " + getString(R.string.recently_watched_tab);
-        ((MainActivity)getActivity()).getmTitleTextView().setText(aTitle);
-        ((MainActivity)getActivity()).getmTitleTextView().setSelected(true);
-    }
-
     @Override
     public void onRemoveClicked(YouTubeVideo video) {
         recentlyPlayedVideos.remove(video);

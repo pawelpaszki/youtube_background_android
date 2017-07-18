@@ -107,26 +107,26 @@ public class MainActivity extends AppCompatActivity implements
 
     private SeekBar mDurationSeekbar;
 
-    public TextView getmTitleTextView() {
-        return mTitleTextView;
-    }
-
     private TextView mTitleTextView;
     private ImageView mPreviousVideo;
     private ImageView mPlay;
-    private ImageView mStop;
     private ImageView mNextVideo;
     private ImageView mLoopVideo;
     private boolean mIsPlaying;
     private boolean mHasPlaybackStarted;
     private int mProgressSet;
     private int mPausedAt;
+    public static final String DOWNLOADED = "downloaded";
+    public static final String PLAYLISTS = "playlists";
+    public static final String RECENT = "recent";
+    public static final String SEARCH = "search";
 
     private ArrayList<FloatingActionButton> mControls = new ArrayList<>();
     private FloatingActionButton mGoToDownloads;
     private FloatingActionButton mGoToRecent;
     private FloatingActionButton mGoToSearch;
     private FloatingActionButton mGoToPlaylist;
+    public static String fragmentName = "";
 
     private SearchFragment searchFragment;
     private RecentlyWatchedFragment recentlyPlayedFragment;
@@ -146,37 +146,43 @@ public class MainActivity extends AppCompatActivity implements
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.i("extras", intent.getStringExtra("duration"));
-            String currentlyPlayedFragment = mTitleTextView.getText().toString();
 
             setDuration(intent.getStringExtra("duration"));
             String title = intent.getStringExtra("title");
             if(mControlsTouched) {
                 mControlsTouched = false;
-                if(currentlyPlayedFragment.contains("(DOWNLOADED")) {
-                    downloadedFragment.setTitle(title);
-                } else if (currentlyPlayedFragment.contains("(PLAYLISTS")) {
-                    playListsFragment.setTitle(title);
-                } else if (currentlyPlayedFragment.contains("(RECENT")) {
-                    recentlyPlayedFragment.setTitle(title);
-                } else if (currentlyPlayedFragment.contains("(SEARCH")) {
-                    searchFragment.setTitle(title);
+                switch (fragmentName) {
+                    case DOWNLOADED:
+                        fragmentName = DOWNLOADED;
+                        break;
+                    case PLAYLISTS:
+                        fragmentName = PLAYLISTS;
+                        break;
+                    case RECENT:
+                        fragmentName = RECENT;
+                        break;
+                    case SEARCH:
+                        fragmentName = SEARCH;
+                        break;
                 }
             } else {
                 switch(viewPager.getCurrentItem()) {
                     case 0:
-                        downloadedFragment.setTitle(title);
+                        fragmentName = DOWNLOADED;
                         break;
                     case 1:
-                        playListsFragment.setTitle(title);
+                        fragmentName = PLAYLISTS;
                         break;
                     case 2:
-                        recentlyPlayedFragment.setTitle(title);
+                        fragmentName = RECENT;
                         break;
                     case 3:
-                        searchFragment.setTitle(title);
+                        fragmentName = SEARCH;
                         break;
                 }
             }
+            mTitleTextView.setText(title);
+            mTitleTextView.setSelected(true);
         }
     };
 
@@ -250,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements
                     params.height = 0;
                     toolbar.setLayoutParams(params);
                 }
-                if(position == 0 && mTitleTextView.getText().toString().contains("(DOWNLOADED")) {
+                if(position == 0 && fragmentName.equals(DOWNLOADED)) {
                     Intent new_intent = new Intent();
                     new_intent.setAction(ACTION_VIDEO_UPDATE);
                     sendBroadcast(new_intent);
@@ -351,7 +357,7 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
-        mStop = (ImageView) findViewById(R.id.stop);
+        ImageView mStop = (ImageView) findViewById(R.id.stop);
         mStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -394,8 +400,7 @@ public class MainActivity extends AppCompatActivity implements
                     if(j!= 0) {
                         downloadedFragment.stopAllListeners(false);
                     } else {
-                        if(!mTitleTextView.getText().toString().contains("(RECENT)") && !mTitleTextView.getText().toString().contains("(SEARCH)") &&
-                        !mTitleTextView.getText().toString().contains("(PLAYLISTS)")) {
+                        if(fragmentName.equals(DOWNLOADED)) {
                             //Log.i("resume listeners", "true");
                             downloadedFragment.resumeAllListeners();
                         }
@@ -615,6 +620,7 @@ public class MainActivity extends AppCompatActivity implements
     private void clearTitleTextView() {
         mTitleTextView = (TextView) findViewById(R.id.title);
         mTitleTextView.setText("");
+        fragmentName = "";
         mTitleTextView.setSelected(true);
     }
 
