@@ -188,6 +188,7 @@ public class MainActivity extends AppCompatActivity implements
 
         mTitleTextView = (TextView) findViewById(R.id.title);
         mMediaIndicator = (LinearLayout) findViewById(R.id.list_indicator);
+        mMediaIndicator.setVisibility(View.GONE);
         mListIndicator = (ImageView) mMediaIndicator.findViewById(R.id.list_icon);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);

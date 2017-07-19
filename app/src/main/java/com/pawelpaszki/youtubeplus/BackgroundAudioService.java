@@ -40,6 +40,7 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.View;
 import android.widget.Toast;
 
 import com.facebook.network.connectionclass.ConnectionClassManager;
@@ -277,8 +278,9 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 //                mController.getTransportControls().skipToNext();
 //            }
         } else if (action.equalsIgnoreCase(ACTION_STOP)) {
+            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancel(999);
             Log.i("stop", "in service");
-            mController.getTransportControls().stop();
             if(mMediaPlayer != null) {
                 stopPlayer();
                 if(mSeekBarProgressHandler != null) {
@@ -286,7 +288,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                     mSeekBarProgressHandler = null;
                 }
             }
-            //stopSelf();
+            stopSelf();
         } else if (action.equalsIgnoreCase(ACTION_SEEK)) {
             int value = intent.getIntExtra("seekTo", 0);
                 seekVideo(value * 1000);
@@ -442,8 +444,6 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                         public void onStop() {
                             super.onStop();
                             stopPlayer();
-                            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-                            notificationManager.cancel(1);
                             Intent intent = new Intent(getApplicationContext(), BackgroundAudioService.class);
                             stopService(intent);
                         }
@@ -503,7 +503,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         style.setShowActionsInCompactView(0, 1, 2);
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(1, builder.build());
+        notificationManager.notify(999, builder.build());
 
     }
 
@@ -535,7 +535,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     private void updateNotificationLargeIcon(Bitmap bitmap) {
         builder.setLargeIcon(bitmap);
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(1, builder.build());
+        notificationManager.notify(999, builder.build());
     }
 
     /**
@@ -771,14 +771,14 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
      * Stops video
      */
     private void stopPlayer() {
-        if(mMediaPlayer != null) {
-            mMediaPlayer.stop();
-            mMediaPlayer.release();
-            mMediaPlayer = null;
-            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.cancelAll();
+        if(mMediaPlayer!=null)
+        {
+            if(mMediaPlayer.isPlaying()){
+                mMediaPlayer.stop();// Stop it
+                mMediaPlayer.release();// Release it
+                mMediaPlayer=null; // Initilize to null so it can be used later
+            }
         }
-
     }
 
     /**
@@ -838,21 +838,22 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                     Toast.makeText(YTApplication.getAppContext(), R.string.failed_playback,
                             Toast.LENGTH_SHORT).show();
 
-                }
-                deviceBandwidthSampler.stopSampling();
-                YtFile ytFile = getBestStream(ytFiles);
-                try {
-                    if (mMediaPlayer != null) {
-                        mMediaPlayer.reset();
-                        mMediaPlayer.setDataSource(ytFile.getUrl());
-                        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                        mMediaPlayer.prepare();
-                        mMediaPlayer.start();
-                        handleSeekBarChange(videoItem.getId());
-                        sendBroadcast(videoItem.getDuration());
+                } else {
+                    deviceBandwidthSampler.stopSampling();
+                    YtFile ytFile = getBestStream(ytFiles);
+                    try {
+                        if (mMediaPlayer != null) {
+                            mMediaPlayer.reset();
+                            mMediaPlayer.setDataSource(ytFile.getUrl());
+                            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                            mMediaPlayer.prepare();
+                            mMediaPlayer.start();
+                            handleSeekBarChange(videoItem.getId());
+                            sendBroadcast(videoItem.getDuration());
+                        }
+                    } catch (IOException io) {
+                        io.printStackTrace();
                     }
-                } catch (IOException io) {
-                    io.printStackTrace();
                 }
             }
         }.execute(youtubeLink);

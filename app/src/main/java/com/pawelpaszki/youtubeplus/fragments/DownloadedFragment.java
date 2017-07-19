@@ -298,19 +298,20 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     }
 
     private void stopPlayer() {
-        if(mediaPlayer != null) {
-            mediaPlayer.reset();
-            mediaPlayer.stop();
-            mediaPlayer.release();
-            mediaPlayer = null;
-            vidSurface.setVisibility(View.GONE);
-            setPlayListSize(false);
-
+        if(mediaPlayer!=null)
+        {
+            if(mediaPlayer.isPlaying()){
+                mediaPlayer.stop();// Stop it
+                mediaPlayer.release();// Release it
+                mediaPlayer=null; // Initilize to null so it can be used later
+                vidSurface.setVisibility(View.GONE);
+                setPlayListSize(false);
+            }
         }
     }
 
     private void startVideo(YouTubeVideo video) {
-
+        stopPlayer();
         try {
             final File[] files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
             int index = -1;
@@ -454,9 +455,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 }
             }
         } else if (action.equalsIgnoreCase(ACTION_STOP)) {
-            if (mediaPlayer != null) {
-                stopPlayer();
-            }
+            stopPlayer();
         } else if (action.equalsIgnoreCase(ACTION_SEEK)) {
             int value = intent.getIntExtra("seekTo", 0);
             if(mediaPlayer!= null && fragmentName.equals(DOWNLOADED)) {
