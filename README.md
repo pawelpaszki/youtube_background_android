@@ -10,7 +10,7 @@ https://console.developers.google.com/
 
 In order to use this code, you are required to clone this repo and open it in Android Studio.
 
-The main goal of this application is to be able to listen to youtube media in the background
+The main goal of this application is to be able to listen to youtube media in the background and watch videos in foreground, once downloaded
 
 ## Please note that Google Play prevents from playing YouTube videos in the background, therefore applications like this are not permitted to be pushed to Play Store
 
@@ -32,5 +32,11 @@ _________________________________________________________________
 * download media (except from download view)
 
 <img src="https://github.com/pawelpaszki/youtube_background_android/blob/master/raw/animation.gif" alt="YouTube+" width="360" height="640">
+
+####TODO
+
+* improve media sync played from Downloaded tab
+* (optionally) provide audio equalizer
+* (optionally) provide video view for streamed media
 
 Please see License tab for more details
