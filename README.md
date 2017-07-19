@@ -12,14 +12,25 @@ In order to use this code, you are required to clone this repo and open it in An
 
 The main goal of this application is to be able to listen to youtube media in the background
 
-Functionality includes:
+## Please note that Google Play prevents from playing YouTube videos in the background, therefore applications like this are not permitted to be pushed to Play Store
 
-- searching for youtube videos and playing them
-- removing individual videos from "recently watched" list
-- listening to current "video" in the loop
-- seeking "video" using SeekBar
-- adding videos to "favourite list"
-- accessing other videos from a list by either pressing them on using "previous"/ "next" buttons
+Swiping from left edge of the screen shows/hides buttons, which open one of four sections of the application:
+_____________________________________________________________________________________________________________
 
-<img src="https://github.com/pawelpaszki/youtube_background_android/blob/master/raw/favourite.png" alt="alt text" width="360" height="640">
-<img src="https://github.com/pawelpaszki/youtube_background_android/blob/master/raw/recently_watched.png" alt="alt text" width="360" height="640">
+* Downloaded videos - displays list of downloaded media, which can be individually all collectively removed
+* Playlists - displays view with dropdown of all available playlists (if any). Playlists can be added, removed and individually displayed
+* Recently opened media
+* Search view
+
+Media can be played from either of these sections. When played from "Downloaded" section, video will also appear (and re-appear when returning into the app)
+
+Long pressing the name of the media will show additional options:
+_________________________________________________________________
+
+* add media to playlist (if there is no playlist, new playlist will be created, otherwise list of playlists will be displayed)
+* remove media from the list (except from search view)
+* download media (except from download view)
+
+<img src="https://github.com/pawelpaszki/youtube_background_android/blob/master/raw/animation.gif" alt="YouTube+" width="360" height="640">
+
+Please see License tab for more details

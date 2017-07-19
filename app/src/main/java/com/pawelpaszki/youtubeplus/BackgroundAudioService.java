@@ -248,6 +248,8 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
             mMediaPlayer.release();
             mMediaPlayer=null;
         }
+        NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancel(999);
     }
 
     /**
@@ -278,8 +280,6 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 //                mController.getTransportControls().skipToNext();
 //            }
         } else if (action.equalsIgnoreCase(ACTION_STOP)) {
-            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.cancel(999);
             Log.i("stop", "in service");
             if(mMediaPlayer != null) {
                 stopPlayer();
