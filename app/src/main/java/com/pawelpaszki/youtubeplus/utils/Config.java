@@ -29,5 +29,8 @@ public final class Config {
     public static final String ACTION_VIDEO_UPDATE = "action_video_update";
     public static final String ACTION_STOP = "action_stop";
     public static final String ACITON_VIDEO_CHANGE = "action_change_media";
+    public static final String ACITON_ACTIVITY_RESUMED = "action_activity_resumed";
+    public static final String ACTION_MEDIA_PAUSED = "action_activity_paused";
+
 
 }

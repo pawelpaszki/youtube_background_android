@@ -62,7 +62,9 @@ import at.huber.youtubeExtractor.VideoMeta;
 import at.huber.youtubeExtractor.YouTubeExtractor;
 import at.huber.youtubeExtractor.YtFile;
 
+import static com.pawelpaszki.youtubeplus.utils.Config.ACITON_ACTIVITY_RESUMED;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACITON_VIDEO_CHANGE;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_MEDIA_PAUSED;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_NEXT;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PAUSE;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PLAY;
@@ -146,6 +148,13 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         }
     };
 
+    private BroadcastReceiver mActivityResumedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleIntent(intent);
+        }
+    };
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -187,6 +196,10 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         if (mStopReceiver != null) {
             IntentFilter intentFilter = new IntentFilter(ACTION_STOP);
             registerReceiver(mStopReceiver, intentFilter);
+        }
+        if(mActivityResumedReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACITON_ACTIVITY_RESUMED);
+            registerReceiver(mActivityResumedReceiver, intentFilter);
         }
     }
 
@@ -241,6 +254,9 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         if (mStopReceiver != null) {
             unregisterReceiver(mStopReceiver);
         }
+        if(mActivityResumedReceiver != null) {
+            unregisterReceiver(mActivityResumedReceiver);
+        }
         if(mMediaPlayer!=null) {
             if(mMediaPlayer.isPlaying())
                 mMediaPlayer.stop();
@@ -287,6 +303,10 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                     mSeekBarProgressHandler.removeCallbacksAndMessages(null);
                     mSeekBarProgressHandler = null;
                 }
+                NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.cancel(1);
+                intent = new Intent(getApplicationContext(), BackgroundAudioService.class);
+                stopService(intent);
             }
             stopSelf();
         } else if (action.equalsIgnoreCase(ACTION_SEEK)) {
@@ -294,6 +314,15 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                 seekVideo(value * 1000);
                 mSetSeekToPosition = value * 1000;
                 handleSeekBarChange(videoItem.getId());
+        } else if (action.equalsIgnoreCase(ACITON_ACTIVITY_RESUMED)) {
+            if(mMediaPlayer != null) {
+                if(!mMediaPlayer.isPlaying()) {
+                    Intent new_intent = new Intent(ACTION_MEDIA_PAUSED);
+                    new_intent.putExtra("title", videoItem.getTitle());
+                    new_intent.putExtra("progress", mMediaPlayer.getCurrentPosition());
+                    sendBroadcast(new_intent);
+                }
+            }
         }
     }
 
@@ -313,6 +342,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                                 Intent new_intent = new Intent();
                                 new_intent.setAction(ACTION_SEEKBAR_UPDATE);
                                 new_intent.putExtra("videoId", videoId);
+                                new_intent.putExtra("title", videoItem.getTitle());
                                 new_intent.putExtra("progress", mMediaPlayer.getCurrentPosition());
                                 sendBroadcast(new_intent);
                                 mSeekToSet = false;
@@ -411,7 +441,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                         @Override
                         public void onPlay() {
                             super.onPlay();
-                            buildNotification(generateAction(android.R.drawable.ic_media_pause, "Pause", ACTION_PAUSE));
+                            buildNotification(generateAction(R.drawable.ic_pause, "Pause", ACTION_PAUSE));
                         }
 
                         @Override
@@ -419,7 +449,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 
                             super.onPause();
                             pauseVideo();
-                            buildNotification(generateAction(android.R.drawable.ic_media_play, "Play", ACTION_PLAY));
+                            buildNotification(generateAction(R.drawable.ic_play, "Play", ACTION_PLAY));
                         }
 
                         @Override
@@ -428,7 +458,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                             if (!isStarting) {
                                 playNext();
                             }
-                            buildNotification(generateAction(android.R.drawable.ic_media_pause, "Pause", ACTION_PAUSE));
+                            buildNotification(generateAction(R.drawable.ic_pause, "Pause", ACTION_PAUSE));
                         }
 
                         @Override
@@ -437,13 +467,18 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                             if (!isStarting) {
                                 playPrevious();
                             }
-                            buildNotification(generateAction(android.R.drawable.ic_media_pause, "Pause", ACTION_PAUSE));
+                            buildNotification(generateAction(R.drawable.ic_pause, "Pause", ACTION_PAUSE));
                         }
 
                         @Override
                         public void onStop() {
                             super.onStop();
                             stopPlayer();
+                            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                            notificationManager.cancel(1);
+                            Intent new_intent = new Intent();
+                            new_intent.setAction(ACTION_STOP);
+                            sendBroadcast(new_intent);
                             Intent intent = new Intent(getApplicationContext(), BackgroundAudioService.class);
                             stopService(intent);
                         }
@@ -479,8 +514,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         PendingIntent clickPendingIntent = PendingIntent.getActivity(this, 0, clickIntent, 0);
 
         builder = new NotificationCompat.Builder(this);
-        builder.setSmallIcon(android.R.drawable.ic_media_play);
-        //builder.setColor(getApplicationContext().getResources().getColor(R.color.colorPrimary));
+        builder.setSmallIcon(R.drawable.ic_play);
         builder.setContentTitle(videoItem.getTitle());
         builder.setContentInfo(videoItem.getDuration());
         builder.setShowWhen(false);
@@ -497,14 +531,13 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                     .into(target);
         }
 
-        builder.addAction(generateAction(android.R.drawable.ic_media_previous, "Previous", ACTION_PREVIOUS));
+        builder.addAction(generateAction(R.drawable.ic_previous, "Previous", ACTION_PREVIOUS));
         builder.addAction(action);
-        builder.addAction(generateAction(android.R.drawable.ic_media_next, "Next", ACTION_NEXT));
+        builder.addAction(generateAction(R.drawable.ic_next, "Next", ACTION_NEXT));
         style.setShowActionsInCompactView(0, 1, 2);
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(999, builder.build());
-
+        notificationManager.notify(1, builder.build());
     }
 
     /**
@@ -535,7 +568,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     private void updateNotificationLargeIcon(Bitmap bitmap) {
         builder.setLargeIcon(bitmap);
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(999, builder.build());
+        notificationManager.notify(1, builder.build());
     }
 
     /**
@@ -572,6 +605,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
             startMediaPlayerWithLocalMedia(youTubeVideos.get(index).getId());
             videoItem = youTubeVideos.get(index);
             mPreviousPressed = false;
+            buildNotification(generateAction(R.drawable.ic_pause, "Pause", ACTION_PAUSE));
             return;
         }
 
@@ -583,6 +617,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 
         videoItem = youTubeVideos.get(currentSongIndex);
         playVideo();
+        buildNotification(generateAction(R.drawable.ic_pause, "Pause", ACTION_PAUSE));
     }
 
     /**
@@ -602,6 +637,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
             startMediaPlayerWithLocalMedia(youTubeVideos.get(index).getId());
             videoItem = youTubeVideos.get(index);
             mPreviousPressed = true;
+            buildNotification(generateAction(R.drawable.ic_pause, "Pause", ACTION_PAUSE));
             return;
         }
 
@@ -612,6 +648,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         }
         videoItem = youTubeVideos.get(youTubeVideos.size() - 1);
         playVideo();
+        buildNotification(generateAction(R.drawable.ic_pause, "Pause", ACTION_PAUSE));
     }
 
     /**
@@ -661,19 +698,21 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 
 
                 } else {
-                    if(anyLocalMediaExists()) {
-                        int newIndex;
-                        if(mPreviousPressed) {
-                            newIndex = getPreviousLocalMediaIndex(filename);
-                        } else {
-                            newIndex = getNextLocalMediaIndex(filename);
-                        }
-
-                        videoItem = youTubeVideos.get(newIndex);
-                        startMediaPlayerWithLocalMedia(youTubeVideos.get(newIndex).getId());
-                    } else {
-                        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).deleteAll();
-                    }
+                    Toast.makeText(YTApplication.getAppContext(), R.string.failed_playback,
+                            Toast.LENGTH_SHORT).show();
+//                    if(anyLocalMediaExists()) {
+//                        int newIndex;
+//                        if(mPreviousPressed) {
+//                            newIndex = getPreviousLocalMediaIndex(filename);
+//                        } else {
+//                            newIndex = getNextLocalMediaIndex(filename);
+//                        }
+//
+//                        videoItem = youTubeVideos.get(newIndex);
+//                        startMediaPlayerWithLocalMedia(youTubeVideos.get(newIndex).getId());
+//                    } else {
+//                        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).deleteAll();
+//                    }
                 }
             }
         } catch (Exception e) {
@@ -782,13 +821,6 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     }
 
     /**
-     * Get the best available audio stream
-     * <p>
-     * Itags:
-     * 141 - mp4a - stereo, 44.1 KHz 256 Kbps
-     * 251 - webm - stereo, 48 KHz 160 Kbps
-     * 140 - mp4a - stereo, 44.1 KHz 128 Kbps
-     * 17 - mp4 - stereo, 44.1 KHz 96-100 Kbps
      *
      * @param ytFiles Array of available streams
      * @return Audio stream with highest bitrate
@@ -878,10 +910,11 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     public void onCompletion(MediaPlayer _mediaPlayer) {
         if (mediaType == ItemType.YOUTUBE_MEDIA_TYPE_PLAYLIST || !SharedPrefs.getIsLooping(getApplicationContext())) {
             playNext();
-            buildNotification(generateAction(android.R.drawable.ic_media_pause, "Pause", ACTION_PAUSE));
+
         } else {
             restartVideo();
         }
+
     }
 
     @Override

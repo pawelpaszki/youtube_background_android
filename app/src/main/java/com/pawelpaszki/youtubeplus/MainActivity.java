@@ -82,6 +82,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.pawelpaszki.youtubeplus.R.layout.suggestions;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACITON_ACTIVITY_RESUMED;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_MEDIA_PAUSED;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_NEXT;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PAUSE;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PLAY;
@@ -158,10 +160,27 @@ public class MainActivity extends AppCompatActivity implements
 
                 //Log.i("activity progress", String.valueOf(progress));
                 mDurationSeekbar.setProgress(progress / 1000);
+                String title = intent.getStringExtra("title");
+                if(!mTitleTextView.getText().toString().equals(title)) {
+                    mTitleTextView.setText(title);
+                }
                 if (progress > 2000) {
                     setControlsEnabled(true);
                 }
             }
+        }
+    };
+
+    private BroadcastReceiver mMediaPlayerPaused = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String title = intent.getStringExtra("title");
+            if(!mTitleTextView.getText().toString().equals(title)) {
+                mTitleTextView.setText(title);
+            }
+            int progress = intent.getIntExtra("progress", 0);
+            mDurationSeekbar.setProgress(progress / 1000);
+            setPlayIconAndDisableControls(false);
 
         }
     };
@@ -188,8 +207,9 @@ public class MainActivity extends AppCompatActivity implements
 
         mTitleTextView = (TextView) findViewById(R.id.title);
         mMediaIndicator = (LinearLayout) findViewById(R.id.list_indicator);
-        mMediaIndicator.setVisibility(View.GONE);
         mListIndicator = (ImageView) mMediaIndicator.findViewById(R.id.list_icon);
+        mMediaIndicator.setVisibility(View.GONE);
+        mListIndicator.setVisibility(View.GONE);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -242,16 +262,6 @@ public class MainActivity extends AppCompatActivity implements
         setupViewPager(viewPager);
 
         networkConf = new NetworkConf(this);
-
-        if (mPlaybackStartedReceiver != null) {
-            IntentFilter intentFilter = new IntentFilter(ACTION_PLAYBACK_STARTED);
-            registerReceiver(mPlaybackStartedReceiver, intentFilter);
-        }
-
-        if (mPlaybackUpdated != null) {
-            IntentFilter intentFilter = new IntentFilter(ACTION_SEEKBAR_UPDATE);
-            registerReceiver(mPlaybackUpdated, intentFilter);
-        }
 
         mDurationSeekbar = (SeekBar) findViewById(R.id.seekBar);
 
@@ -335,6 +345,7 @@ public class MainActivity extends AppCompatActivity implements
                     setPlayIconAndDisableControls(true);
                     mDurationSeekbar.setProgress(0);
                     mMediaIndicator.setVisibility(View.GONE);
+                    mListIndicator.setVisibility(View.GONE);
                 }
             }
         });
@@ -427,10 +438,12 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
+
     private void setMediaPlayedIcon() {
         Log.i("fragment name", fragmentName);
         if(mMediaIndicator.getVisibility() != View.INVISIBLE) {
             mMediaIndicator.setVisibility(View.VISIBLE);
+            mListIndicator.setVisibility(View.VISIBLE);
         }
         Resources res = getResources();
         Drawable icon;
@@ -528,15 +541,17 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStop() {
+        super.onStop();
         if(mPlaybackStartedReceiver != null) {
             unregisterReceiver(mPlaybackStartedReceiver);
         }
         if(mPlaybackUpdated != null) {
             unregisterReceiver(mPlaybackUpdated);
         }
-
+        if(mMediaPlayerPaused != null) {
+            unregisterReceiver(mMediaPlayerPaused);
+        }
     }
 
     private void setIsLoopingIcon(boolean doUpdate) {
@@ -591,9 +606,7 @@ public class MainActivity extends AppCompatActivity implements
                 break;
             case "stop":
                 new_intent.setAction(ACTION_STOP);
-                if(viewPager.getCurrentItem() != 0) {
                     clearTitleTextView();
-                }
                 break;
         }
         sendBroadcast(new_intent);
@@ -613,7 +626,23 @@ public class MainActivity extends AppCompatActivity implements
                 //Log.i("setaction", "vid update activity");
             }
         }, 2000);
+        if (mPlaybackStartedReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_PLAYBACK_STARTED);
+            registerReceiver(mPlaybackStartedReceiver, intentFilter);
+        }
 
+        if (mPlaybackUpdated != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_SEEKBAR_UPDATE);
+            registerReceiver(mPlaybackUpdated, intentFilter);
+        }
+        if(mMediaPlayerPaused != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_MEDIA_PAUSED);
+            registerReceiver(mMediaPlayerPaused, intentFilter);
+        }
+
+        Intent new_intent = new Intent();
+        new_intent.setAction(ACITON_ACTIVITY_RESUMED);
+        sendBroadcast(new_intent);
     }
 
     private void clearTitleTextView() {

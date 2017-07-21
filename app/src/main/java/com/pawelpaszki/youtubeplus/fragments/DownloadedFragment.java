@@ -304,10 +304,11 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 mediaPlayer.stop();// Stop it
                 mediaPlayer.release();// Release it
                 mediaPlayer=null; // Initilize to null so it can be used later
-                vidSurface.setVisibility(View.GONE);
-                setPlayListSize(false);
             }
         }
+        vidSurface.setVisibility(View.GONE);
+        setPlayListSize(false);
+
     }
 
     private void startVideo(YouTubeVideo video) {
@@ -439,14 +440,14 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                     Log.i("progress in fragment", String.valueOf(progress));
                     int mediaPlayerProgress = mediaPlayer.getCurrentPosition();
                     Log.i("mplayer progress before", String.valueOf(mediaPlayerProgress));
-                    if(progress > 10 && Math.abs(progress - mediaPlayerProgress) > 300) {
-                        mediaPlayer.seekTo(progress);
-                    }
-                    Log.i("mplayer progress after", String.valueOf(mediaPlayerProgress));
-                    if(mSeekAdjustmentRequired) {
-                        mediaPlayer.seekTo(progress);
-                        mSeekAdjustmentRequired = false;
 
+                    Log.i("mplayer progress after", String.valueOf(mediaPlayerProgress));
+//                    if(mSeekAdjustmentRequired) {
+//                        mediaPlayer.seekTo(progress);
+//                        mSeekAdjustmentRequired = false;
+//                    } else
+                        if(progress > 10000 && Math.abs(progress - mediaPlayerProgress) > 300) {
+                        mediaPlayer.seekTo(progress);
                     }
                 }
             } else {
