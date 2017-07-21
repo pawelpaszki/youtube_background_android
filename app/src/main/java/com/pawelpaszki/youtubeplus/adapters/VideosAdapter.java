@@ -44,7 +44,7 @@ import java.util.List;
  * Custom ArrayAdapter which enables setup of a list view row views
  * Created by smedic on 8.2.16..
  */
-public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder> {
+public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder>  implements View.OnClickListener, View.OnLongClickListener{
 
     private Context context;
     private final List<YouTubeVideo> list;
@@ -61,6 +61,8 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.video_item, null);
+        view.setOnClickListener(this);
+        view.setOnLongClickListener(this);
         return new ViewHolder(view);
     }
 
@@ -69,59 +71,7 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
         final YouTubeVideo video = list.get(position);
         Picasso.with(context).load(video.getThumbnailURL()).into(holder.thumbnail);
 
-        holder.title.setText(video.getTitle());
-        holder.title.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                builder.setTitle("Please choose option");
-                String [] searchOptions = new String[] {"add to playlist", "download"};
-                String [] recentOptions = new String[] {"add to playlist", "remove from the list", "download"};
-                final String [] options;
-                if(mFragment.equals("searchFragment")) {
-                    options = searchOptions;
-                } else {
-                    options = recentOptions;
-                }
-                builder.setSingleChoiceItems(options, -1, new DialogInterface
-                        .OnClickListener() {
-                    public void onClick(DialogInterface dialog, int item) {
-                        switch (options[item]) {
-                            case "add to playlist":
-                                if (itemEventsListener != null) {
-                                    itemEventsListener.onAddClicked(video);
-                                }
-                                break;
-                            case "remove from the list":
-                                if (itemEventsListener != null) {
-                                    itemEventsListener.onRemoveClicked(video);
-                                }
-                                break;
-                            case "download":
-                                if (itemEventsListener != null) {
-                                    itemEventsListener.onDownloadClicked(video);
-                                }
-                                break;
-                        }
-                        dialog.dismiss();
-
-                    }
-                });
-                AlertDialog alert = builder.create();
-                alert.show();
-                Log.i("long click", "true");
-                return true;
-            }
-        });
-        holder.title.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (itemEventsListener != null) {
-                    itemEventsListener.onItemClick(video);
-                }
-            }
-        });
-        holder.duration.setText(video.getDuration());
+        holder.title.setText(video.getTitle());holder.duration.setText(video.getDuration());
         Log.i("views", video.getViewCount());
         String views;
         if(video.getViewCount().length() < 10) {
@@ -143,6 +93,59 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
     @Override
     public int getItemCount() {
         return (null != list ? list.size() : 0);
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (itemEventsListener != null) {
+            YouTubeVideo item = (YouTubeVideo) v.getTag();
+            itemEventsListener.onItemClick(item);
+        }
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        if (itemEventsListener != null) {
+            final YouTubeVideo video = (YouTubeVideo) v.getTag();
+            AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+            builder.setTitle("Please choose option");
+            String[] searchOptions = new String[]{"add to playlist", "download"};
+            String[] recentOptions = new String[]{"add to playlist", "remove from the list", "download"};
+            final String[] options;
+            if (mFragment.equals("searchFragment")) {
+                options = searchOptions;
+            } else {
+                options = recentOptions;
+            }
+            builder.setSingleChoiceItems(options, -1, new DialogInterface
+                    .OnClickListener() {
+                public void onClick(DialogInterface dialog, int item) {
+                    switch (options[item]) {
+                        case "add to playlist":
+                            if (itemEventsListener != null) {
+                                itemEventsListener.onAddClicked(video);
+                            }
+                            break;
+                        case "remove from the list":
+                            if (itemEventsListener != null) {
+                                itemEventsListener.onRemoveClicked(video);
+                            }
+                            break;
+                        case "download":
+                            if (itemEventsListener != null) {
+                                itemEventsListener.onDownloadClicked(video);
+                            }
+                            break;
+                    }
+                    dialog.dismiss();
+
+                }
+            });
+            AlertDialog alert = builder.create();
+            alert.show();
+            Log.i("long click", "true");
+        }
+        return true;
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
