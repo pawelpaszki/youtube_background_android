@@ -96,7 +96,7 @@ import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_VIDEO_UPDATE;
 import static com.pawelpaszki.youtubeplus.youtube.YouTubeSingleton.getCredential;
 
 /**
- * Activity that manages fragments and action bar
+ * Activity that manages fragments
  */
 public class MainActivity extends AppCompatActivity implements
         OnItemSelected{

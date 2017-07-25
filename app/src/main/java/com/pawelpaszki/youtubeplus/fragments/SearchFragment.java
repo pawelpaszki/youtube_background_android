@@ -24,6 +24,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Surface;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -85,6 +87,8 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         final View v = inflater.inflate(R.layout.fragment_list, container, false);
+        SurfaceView surfaceView = (SurfaceView) v.findViewById(R.id.surfaceView);
+        surfaceView.setVisibility(View.GONE);
         LinearLayout spinner = (LinearLayout) v.findViewById(R.id.playlist_management);
         spinner.setVisibility(View.GONE);
         LinearLayout deleteRecent = (LinearLayout) v.findViewById(R.id.delete_recent_container);

@@ -27,6 +27,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -98,6 +99,8 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_list, container, false);
+        SurfaceView surfaceView = (SurfaceView) v.findViewById(R.id.surfaceView);
+        surfaceView.setVisibility(View.GONE);
         RecyclerView playListsView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         playListsView.setLayoutManager(new LinearLayoutManager(context));
         TypedValue tv = new TypedValue();
