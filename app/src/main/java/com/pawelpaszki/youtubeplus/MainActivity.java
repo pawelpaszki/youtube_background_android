@@ -82,7 +82,10 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.pawelpaszki.youtubeplus.R.layout.suggestions;
+import static com.pawelpaszki.youtubeplus.adapters.NoThumbnailAdapter.downloadedRearranged;
+import static com.pawelpaszki.youtubeplus.adapters.SimpleItemTouchHelperCallback.setIsLongPressEnabled;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACITON_ACTIVITY_RESUMED;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_LOOPING_SELECTED;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_MEDIA_PAUSED;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_NEXT;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PAUSE;
@@ -378,6 +381,12 @@ public class MainActivity extends AppCompatActivity implements
 //                    InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 //                    inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
                     //Log.i("page selected", String.valueOf(j));
+                    if(viewPager.getCurrentItem() == 0 && j != 0) {
+                        if(downloadedRearranged) {
+                            downloadedRearranged = false;
+                            downloadedFragment.refreshDB();
+                        }
+                    }
                     if(j!= 0) {
                         downloadedFragment.stopAllListeners(false);
                     } else {
@@ -385,7 +394,6 @@ public class MainActivity extends AppCompatActivity implements
                             //Log.i("resume listeners", "true");
                             downloadedFragment.resumeAllListeners();
                         }
-
                     }
 
                     viewPager.setCurrentItem(j, false);
@@ -544,13 +552,25 @@ public class MainActivity extends AppCompatActivity implements
     protected void onStop() {
         super.onStop();
         if(mPlaybackStartedReceiver != null) {
-            unregisterReceiver(mPlaybackStartedReceiver);
+            try {
+                unregisterReceiver(mPlaybackStartedReceiver);
+            } catch (IllegalArgumentException e) {
+                Log.e("error", "receiver not registered");
+            }
         }
         if(mPlaybackUpdated != null) {
-            unregisterReceiver(mPlaybackUpdated);
+            try {
+                unregisterReceiver(mPlaybackUpdated);
+            } catch (IllegalArgumentException e) {
+                Log.e("error", "receiver not registered");
+            }
         }
         if(mMediaPlayerPaused != null) {
-            unregisterReceiver(mMediaPlayerPaused);
+            try {
+                unregisterReceiver(mMediaPlayerPaused);
+            } catch (IllegalArgumentException e) {
+                Log.e("error", "receiver not registered");
+            }
         }
     }
 
@@ -566,7 +586,10 @@ public class MainActivity extends AppCompatActivity implements
         } else {
             mLoopVideo.setColorFilter(Color.argb(255, 255, 255, 255));
         }
-        //Log.i("is looping", String.valueOf(SharedPrefs.getIsLooping(MainActivity.this)));
+        Intent intent = new Intent();
+        intent.setAction(ACTION_LOOPING_SELECTED);
+        intent.putExtra("Repeat", isLooping);
+        sendBroadcast(intent);
 
     }
 
@@ -605,6 +628,7 @@ public class MainActivity extends AppCompatActivity implements
                 new_intent.putExtra("seekTo", mProgressSet);
                 break;
             case "stop":
+                setIsLongPressEnabled(true);
                 new_intent.setAction(ACTION_STOP);
                     clearTitleTextView();
                 break;
@@ -782,6 +806,7 @@ public class MainActivity extends AppCompatActivity implements
         serviceIntent.putExtra(Config.YOUTUBE_TYPE, ItemType.YOUTUBE_MEDIA_TYPE_PLAYLIST);
         serviceIntent.putExtra(Config.YOUTUBE_TYPE_PLAYLIST, (ArrayList) playlist);
         serviceIntent.putExtra(Config.YOUTUBE_TYPE_PLAYLIST_VIDEO_POS, position);
+        serviceIntent.putExtra("Repeat", SharedPrefs.getIsLooping(this));
         startService(serviceIntent);
     }
 

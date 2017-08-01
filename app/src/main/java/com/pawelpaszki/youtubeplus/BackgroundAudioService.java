@@ -64,6 +64,7 @@ import at.huber.youtubeExtractor.YtFile;
 
 import static com.pawelpaszki.youtubeplus.utils.Config.ACITON_ACTIVITY_RESUMED;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACITON_VIDEO_CHANGE;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_LOOPING_SELECTED;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_MEDIA_PAUSED;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_NEXT;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PAUSE;
@@ -96,6 +97,8 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     private boolean isStarting = false;
     private int currentSongIndex = 0;
     private boolean mSeekToSet;
+
+    private boolean mRepeat;
 
     private ArrayList<YouTubeVideo> youTubeVideos;
 
@@ -279,7 +282,10 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         String action = intent.getAction();
         Log.i("action intent rec", "true");
         Log.i("media type", String.valueOf(mediaType));
-        if (action.equalsIgnoreCase(ACTION_PLAY)) {
+        if(action.equalsIgnoreCase(ACTION_LOOPING_SELECTED)) {
+            mRepeat = intent.getBooleanExtra("Repeat", false);
+        } else if (action.equalsIgnoreCase(ACTION_PLAY)) {
+            mRepeat = intent.getBooleanExtra("Repeat", false);
             handleMedia(intent);
             handleSeekBarChange(videoItem.getId());
             mController.getTransportControls().play();
@@ -908,7 +914,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 
     @Override
     public void onCompletion(MediaPlayer _mediaPlayer) {
-        if (mediaType == ItemType.YOUTUBE_MEDIA_TYPE_PLAYLIST || !SharedPrefs.getIsLooping(getApplicationContext())) {
+        if (mediaType == ItemType.YOUTUBE_MEDIA_TYPE_PLAYLIST || !mRepeat) {
             playNext();
 
         } else {

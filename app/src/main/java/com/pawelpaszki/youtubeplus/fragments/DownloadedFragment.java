@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -32,6 +33,7 @@ import com.pawelpaszki.youtubeplus.MainActivity;
 import com.pawelpaszki.youtubeplus.R;
 import com.pawelpaszki.youtubeplus.YTApplication;
 import com.pawelpaszki.youtubeplus.adapters.NoThumbnailAdapter;
+import com.pawelpaszki.youtubeplus.adapters.SimpleItemTouchHelperCallback;
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.interfaces.ItemEventsListener;
 import com.pawelpaszki.youtubeplus.model.ItemType;
@@ -41,10 +43,13 @@ import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 
 import static com.pawelpaszki.youtubeplus.MainActivity.DOWNLOADED;
 import static com.pawelpaszki.youtubeplus.MainActivity.fragmentName;
+import static com.pawelpaszki.youtubeplus.adapters.NoThumbnailAdapter.downloadedRearranged;
+import static com.pawelpaszki.youtubeplus.adapters.SimpleItemTouchHelperCallback.setIsLongPressEnabled;
 import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlaylistSelectionDialog;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACITON_VIDEO_CHANGE;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PAUSE;
@@ -70,8 +75,8 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     private int mContainerWidth;
     private LinearLayout mVideosContainer;
     private int mTopMargin;
-    private boolean mSeekAdjustmentRequired;
     private boolean mReceiversRegistered;
+    private RecyclerView downloadedListView;
 
     public DownloadedFragment() {
         // Required empty public constructor
@@ -131,11 +136,16 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 }
             }
         });
-        RecyclerView downloadedListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
+        downloadedListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
         downloadedListView.setLayoutManager(new LinearLayoutManager(context));
         videoListAdapter = new NoThumbnailAdapter(context, downloadedVideos, "downloadedFragment");
         videoListAdapter.setOnItemEventsListener(this);
         downloadedListView.setAdapter(videoListAdapter);
+
+        ItemTouchHelper.Callback callback =
+                new SimpleItemTouchHelperCallback(videoListAdapter);
+        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+        touchHelper.attachToRecyclerView(downloadedListView);
 
         //disable swipe to refresh for this tab
         v.findViewById(R.id.swipe_to_refresh).setEnabled(false);
@@ -205,6 +215,8 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 stopPlayer();
             }
         }
+        ArrayList<YouTubeVideo> updatedVideos = new ArrayList<>();
+        // TODO rearrange videos
         mReceiversRegistered = false;
     }
 
@@ -281,6 +293,11 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             serviceIntent.putExtra(Config.LOCAL_MEDIA_FILEAME, video.getId());
             serviceIntent.putExtra(Config.YOUTUBE_TYPE_PLAYLIST, (ArrayList) downloadedVideos);
             getActivity().startService(serviceIntent);
+            setIsLongPressEnabled(false);
+            if(downloadedRearranged) {
+                downloadedRearranged = false;
+                refreshDB();
+            }
             startVideo(video);
         } else if (SharedPrefs.getDownloadInProgress(context, video.getId())) {
             Toast.makeText(YTApplication.getAppContext(), "Media is still being downloaded",
@@ -293,8 +310,14 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                     Toast.LENGTH_SHORT).show();
         }
         YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).create(video);
+    }
 
-
+    public void refreshDB() {
+        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).deleteAll();
+        for(int i = videoListAdapter.getVideoList().size() - 1; i >= 0; i--) {
+            YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).create(videoListAdapter.getIds().get(i));
+        }
+        videoListAdapter.notifyDataSetChanged();
     }
 
     private void stopPlayer() {
@@ -463,7 +486,6 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 mediaPlayer.seekTo(value);
             }
         } else if (action.equalsIgnoreCase(ACTION_VIDEO_UPDATE)) {
-            mSeekAdjustmentRequired = true;
             //Log.i("setaction", "vid update fragment");
         }
     }

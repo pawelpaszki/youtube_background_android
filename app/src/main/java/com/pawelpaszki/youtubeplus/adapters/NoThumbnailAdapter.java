@@ -2,38 +2,59 @@ package com.pawelpaszki.youtubeplus.adapters;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.os.Environment;
+import android.media.Image;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.pawelpaszki.youtubeplus.R;
 import com.pawelpaszki.youtubeplus.interfaces.ItemEventsListener;
+import com.pawelpaszki.youtubeplus.interfaces.ItemTouchHelperAdapter;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 
-import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import static com.pawelpaszki.youtubeplus.adapters.SimpleItemTouchHelperCallback.isLongPressEnabled;
 
 /**
  * Created by PawelPaszki on 07/07/2017.
  * This adapter creates playlist items without the thumbnail
  */
 
-public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.ViewHolder>
+public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.ViewHolder> implements ItemTouchHelperAdapter
          {
 
     private Context context;
-    private final List<YouTubeVideo> list;
+
+     public ArrayList<YouTubeVideo> getVideoList() {
+         return videoList;
+     }
+
+     public ArrayList<YouTubeVideo> getIds() {
+         return ids;
+     }
+
+     public ArrayList<YouTubeVideo> ids = new ArrayList<>();
+
+
+
+     private ArrayList<YouTubeVideo> videoList;
     private String mFragment;
+
+     public static boolean downloadedRearranged;
     private ItemEventsListener<YouTubeVideo> itemEventsListener;
 
     public NoThumbnailAdapter(Context context, List<YouTubeVideo> list, String fragment) {
         super();
-        this.list = list;
+        this.videoList = (ArrayList<YouTubeVideo>) list;
+        ids = (ArrayList<YouTubeVideo>) list;
         this.context = context;
         this.mFragment = fragment;
     }
@@ -41,17 +62,16 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
     @Override
     public NoThumbnailAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.no_thumbnail_item, null);
-
         return new NoThumbnailAdapter.ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(NoThumbnailAdapter.ViewHolder holder, final int position) {
-        final YouTubeVideo video = list.get(position);
+        final YouTubeVideo video = videoList.get(position);
         holder.title.setText(video.getTitle());
-        holder.title.setOnLongClickListener(new View.OnLongClickListener() {
+        holder.extras.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onLongClick(View v) {
+            public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
                 builder.setTitle("Please choose option");
                 String [] downloadsOptions = new String[] {"add to playlist", "remove from the list"};
@@ -89,7 +109,6 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
                 AlertDialog alert = builder.create();
                 alert.show();
                 Log.i("long click", "true");
-                return true;
             }
 
         });
@@ -102,20 +121,38 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
             }
         });
         holder.duration.setText(video.getDuration());
-        holder.itemView.setTag(video);
+        holder.itemView.setTag(video.getId());
     }
 
     @Override
     public int getItemCount() {
-        return (null != list ? list.size() : 0);
+        return (null != videoList ? videoList.size() : 0);
     }
 
+     @Override
+     public void onItemMove(int fromPosition, int toPosition) {
+         if(isLongPressEnabled()) {
+             if(mFragment.equals("downloadedFragment")) {
+                 downloadedRearranged = true;
+             }
+             Collections.swap(ids, fromPosition, toPosition);
+             YouTubeVideo prev = videoList.remove(fromPosition);
+             Log.i("from -> to ", fromPosition + "->" + toPosition);
+             videoList.add(toPosition > fromPosition ? toPosition - 1 : toPosition, prev);
+             notifyItemMoved(fromPosition, toPosition);
+         }
+     }
+
+
      class ViewHolder extends RecyclerView.ViewHolder{
+
         TextView title;
         TextView duration;
+        ImageView extras;
 
         ViewHolder(View itemView) {
             super(itemView);
+            extras = (ImageView) itemView.findViewById(R.id.extra_options_iv);
             title = (TextView) itemView.findViewById(R.id.item_title);
             duration = (TextView) itemView.findViewById(R.id.item_duration);
         }
