@@ -113,7 +113,6 @@ public class AddToPlayListDialog {
             int videoCounter = SharedPrefs.getVideoCounter(video.getId(), context) + 1;
             SharedPrefs.setVideoCounter(video.getId(), videoCounter,context);
         }
-
     }
 
 }

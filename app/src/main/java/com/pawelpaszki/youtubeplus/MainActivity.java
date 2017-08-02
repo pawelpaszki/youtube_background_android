@@ -160,7 +160,13 @@ public class MainActivity extends AppCompatActivity implements
             //Log.i("progress received", String.valueOf(progress));
             if(progress != mProgressSet && progress != mPausedAt) {
                 setPauseIcon();
-
+                String duration = intent.getStringExtra("duration");
+                if(duration.length() > 0) {
+                    int durationValue = getDuration(duration);
+                    if(durationValue != mDurationSeekbar.getMax()) {
+                        mDurationSeekbar.setMax(durationValue);
+                    }
+                }
                 //Log.i("activity progress", String.valueOf(progress));
                 mDurationSeekbar.setProgress(progress / 1000);
                 String title = intent.getStringExtra("title");
@@ -590,6 +596,7 @@ public class MainActivity extends AppCompatActivity implements
         intent.setAction(ACTION_LOOPING_SELECTED);
         intent.putExtra("Repeat", isLooping);
         sendBroadcast(intent);
+        Log.i("Repeat", String.valueOf(isLooping));
 
     }
 
@@ -683,10 +690,7 @@ public class MainActivity extends AppCompatActivity implements
         mDurationSeekbar.setEnabled(value);
     }
 
-    /**
-     * sets max value of seekBar
-     */
-    private void setDuration(String duration) {
+    private int getDuration(String duration) {
         try {
             String[] values = duration.split(":");
             int videoDuration;
@@ -696,18 +700,26 @@ public class MainActivity extends AppCompatActivity implements
                 } else {
                     videoDuration = Integer.parseInt(values[1]) + 60 * Integer.parseInt(values[0]);
                 }
-                mDurationSeekbar.setMax(videoDuration);
-                setControlsVisible(true);
-                Resources res = getResources();
-                Drawable pause = res.getDrawable(R.drawable.ic_pause);
-                mPlay.setImageDrawable(pause);
-                mIsPlaying = true;
-                mHasPlaybackStarted = true;
+                return videoDuration;
             }
-
         } catch (Exception e) {
-            setControlsEnabled(false);
+            return 0;
         }
+        return 0;
+    }
+
+    /**
+     * sets max value of seekBar
+     */
+    private void setDuration(String duration) {
+        int videoDuration = getDuration(duration);
+        mDurationSeekbar.setMax(videoDuration);
+        setControlsVisible(true);
+        Resources res = getResources();
+        Drawable pause = res.getDrawable(R.drawable.ic_pause);
+        mPlay.setImageDrawable(pause);
+        mIsPlaying = true;
+        mHasPlaybackStarted = true;
     }
 
     @Override
@@ -806,7 +818,6 @@ public class MainActivity extends AppCompatActivity implements
         serviceIntent.putExtra(Config.YOUTUBE_TYPE, ItemType.YOUTUBE_MEDIA_TYPE_PLAYLIST);
         serviceIntent.putExtra(Config.YOUTUBE_TYPE_PLAYLIST, (ArrayList) playlist);
         serviceIntent.putExtra(Config.YOUTUBE_TYPE_PLAYLIST_VIDEO_POS, position);
-        serviceIntent.putExtra("Repeat", SharedPrefs.getIsLooping(this));
         startService(serviceIntent);
     }
 

@@ -158,6 +158,13 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         }
     };
 
+    private BroadcastReceiver mLoopingUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleIntent(intent);
+        }
+    };
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -175,7 +182,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         initMediaSessions();
         initPhoneCallListener();
         deviceBandwidthSampler = DeviceBandwidthSampler.getInstance();
-
+        mRepeat = SharedPrefs.getIsLooping(getApplicationContext());
         if (mPauseReceiver != null) {
             IntentFilter intentFilter = new IntentFilter(ACTION_PAUSE);
             registerReceiver(mPauseReceiver, intentFilter);
@@ -204,6 +211,15 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
             IntentFilter intentFilter = new IntentFilter(ACITON_ACTIVITY_RESUMED);
             registerReceiver(mActivityResumedReceiver, intentFilter);
         }
+        if(mActivityResumedReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACITON_ACTIVITY_RESUMED);
+            registerReceiver(mActivityResumedReceiver, intentFilter);
+        }
+        if(mLoopingUpdateReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_LOOPING_SELECTED);
+            registerReceiver(mLoopingUpdateReceiver, intentFilter);
+        }
+
     }
 
     @Override
@@ -260,6 +276,9 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         if(mActivityResumedReceiver != null) {
             unregisterReceiver(mActivityResumedReceiver);
         }
+        if(mLoopingUpdateReceiver != null) {
+            unregisterReceiver(mLoopingUpdateReceiver);
+        }
         if(mMediaPlayer!=null) {
             if(mMediaPlayer.isPlaying())
                 mMediaPlayer.stop();
@@ -284,8 +303,8 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         Log.i("media type", String.valueOf(mediaType));
         if(action.equalsIgnoreCase(ACTION_LOOPING_SELECTED)) {
             mRepeat = intent.getBooleanExtra("Repeat", false);
+            Log.i("rrepeat", String.valueOf(mRepeat));
         } else if (action.equalsIgnoreCase(ACTION_PLAY)) {
-            mRepeat = intent.getBooleanExtra("Repeat", false);
             handleMedia(intent);
             handleSeekBarChange(videoItem.getId());
             mController.getTransportControls().play();
@@ -350,6 +369,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                                 new_intent.putExtra("videoId", videoId);
                                 new_intent.putExtra("title", videoItem.getTitle());
                                 new_intent.putExtra("progress", mMediaPlayer.getCurrentPosition());
+                                new_intent.putExtra("duration", videoItem.getDuration());
                                 sendBroadcast(new_intent);
                                 mSeekToSet = false;
                                 Log.i("progress value", String.valueOf(mMediaPlayer.getCurrentPosition()));
@@ -520,7 +540,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         PendingIntent clickPendingIntent = PendingIntent.getActivity(this, 0, clickIntent, 0);
 
         builder = new NotificationCompat.Builder(this);
-        builder.setSmallIcon(R.drawable.ic_play);
+        builder.setSmallIcon(R.drawable.ic_small_icon);
         builder.setContentTitle(videoItem.getTitle());
         builder.setContentInfo(videoItem.getDuration());
         builder.setShowWhen(false);
@@ -914,11 +934,11 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 
     @Override
     public void onCompletion(MediaPlayer _mediaPlayer) {
-        if (mediaType == ItemType.YOUTUBE_MEDIA_TYPE_PLAYLIST || !mRepeat) {
-            playNext();
-
-        } else {
+        Log.i("rrepeat", String.valueOf(mRepeat));
+        if(mRepeat) {
             restartVideo();
+        } else {
+            playNext();
         }
 
     }

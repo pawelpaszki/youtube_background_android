@@ -380,8 +380,6 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
         fragmentName = PLAYLISTS;
         YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).create(video);
         itemSelected.onPlaylistSelected(customVideos, customVideos.indexOf(video));
-
-
     }
 
     @Override
