@@ -18,7 +18,7 @@ import java.io.File;
 
 public class MediaDownloader {
 
-    public static void downloadMedia(YouTubeVideo video, Context context) {
+    public static void downloadMedia(YouTubeVideo video, Context context, Config.MediaType type) {
         String filename = video.getId();
         File[] files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
         for (File file : files) {
@@ -33,7 +33,7 @@ public class MediaDownloader {
         //TODO check if exists already on sd card
         if(notExists) {
             try {
-                MediaStorageHandler.downloadVideo(video, context);
+                MediaStorageHandler.downloadVideo(video, context, type);
             } catch (Exception e) {
                 Toast.makeText(YTApplication.getAppContext(), "Video has not been downloaded",
                         Toast.LENGTH_SHORT).show();

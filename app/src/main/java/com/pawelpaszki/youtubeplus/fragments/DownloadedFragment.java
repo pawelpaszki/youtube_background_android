@@ -79,6 +79,8 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     private boolean mReceiversRegistered;
     private RecyclerView downloadedListView;
 
+    private boolean mHasVideo = false;
+
     public DownloadedFragment() {
         // Required empty public constructor
     }
@@ -299,7 +301,12 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 downloadedRearranged = false;
                 refreshDB();
             }
-            startVideo(video);
+            if(hasVideo(video)) {
+                mHasVideo = true;
+                startVideo(video);
+            } else {
+                mHasVideo = false;
+            }
         } else if (SharedPrefs.getDownloadInProgress(context, video.getId())) {
             Toast.makeText(YTApplication.getAppContext(), "Media is still being downloaded",
                     Toast.LENGTH_SHORT).show();
@@ -319,6 +326,17 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).create(videoListAdapter.getIds().get(i));
         }
         videoListAdapter.notifyDataSetChanged();
+    }
+
+    private boolean hasVideo(YouTubeVideo video) {
+        String filename = video.getId();
+        File[] files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).listFiles();
+        for (File file : files) {
+            if (file.getAbsolutePath().contains(filename)) {
+                return file.getAbsolutePath().endsWith(".mp4");
+            }
+        }
+        return false;
     }
 
     private void stopPlayer() {
@@ -442,7 +460,16 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 String value = intent.getStringExtra("videoId");
                 for (YouTubeVideo video : downloadedVideos) {
                     if (video.getId().equals(value)) {
-                        startVideo(video);
+                        if(hasVideo(video)) {
+                            mHasVideo = true;
+                            startVideo(video);
+                        } else {
+                            if(mediaPlayer != null) {
+                                stopPlayer();
+                            }
+                            mHasVideo = false;
+                        }
+
                         break;
                     }
                 }
@@ -450,33 +477,22 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
 
         } else if (action.equalsIgnoreCase(ACTION_SEEKBAR_UPDATE)) {
             if(fragmentName.equals(DOWNLOADED)) {
-                if(mediaPlayer == null) {
-                    String value = intent.getStringExtra("videoId");
-                    for (YouTubeVideo video : downloadedVideos) {
-                        if (video.getId().equals(value)) {
-                            startVideo(video);
-                            break;
+                if(mHasVideo) {
+                    if(mediaPlayer == null) {
+                        String value = intent.getStringExtra("videoId");
+                        for (YouTubeVideo video : downloadedVideos) {
+                            if (video.getId().equals(value)) {
+                                startVideo(video);
+                                break;
+                            }
+                        }
+                    } else {
+                        int progress = intent.getIntExtra("progress", 0);
+                        int mediaPlayerProgress = mediaPlayer.getCurrentPosition();
+                        if(progress > 10000 && Math.abs(progress - mediaPlayerProgress) > 300) {
+                            mediaPlayer.seekTo(progress);
                         }
                     }
-                } else {
-                    int progress = intent.getIntExtra("progress", 0);
-//                    long fragmentTime = System.currentTimeMillis();
-//                    long broadcastTime= intent.getLongExtra("timestamp", System.currentTimeMillis());
-//                    Log.i("timestamp broadcast", String.valueOf(broadcastTime));
-//                    Log.i("timestamp fragment", String.valueOf(fragmentTime));
-//                    Log.i("progress in fragment", String.valueOf(progress));
-                    int mediaPlayerProgress = mediaPlayer.getCurrentPosition();
-                    Log.i("mplayer progress before", String.valueOf(mediaPlayerProgress));
-
-
-//                    if(mSeekAdjustmentRequired) {
-//                        mediaPlayer.seekTo(progress);
-//                        mSeekAdjustmentRequired = false;
-//                    } else
-                        if(progress > 10000 && Math.abs(progress - mediaPlayerProgress) > 300) {
-                        mediaPlayer.seekTo(progress);
-                    }
-                    Log.i("mplayer progress after", String.valueOf(mediaPlayerProgress));
                 }
             } else {
                 if (mediaPlayer != null) {
@@ -496,7 +512,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     }
 
     @Override
-    public void onDownloadClicked(YouTubeVideo video) {
+    public void onDownloadClicked(YouTubeVideo video, Config.MediaType type) {
         //do nothing
     }
 
@@ -537,22 +553,24 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
 
     @Override
     public void onPrepared(MediaPlayer mp) {
-        mediaPlayer.start();
-        mediaPlayer.setVolume(0,0);
-        setVideoSize();
-        vidSurface.bringToFront();
-        vidSurface.requestFocus();
-        MediaController mController = new MediaController(context);
-        mController.setMediaPlayer(this);
-        mController.setAnchorView(vidSurface);
+        if(mHasVideo) {
+            mediaPlayer.start();
+            mediaPlayer.setVolume(0,0);
+            setVideoSize();
+            vidSurface.bringToFront();
+            vidSurface.requestFocus();
+            MediaController mController = new MediaController(context);
+            mController.setMediaPlayer(this);
+            mController.setAnchorView(vidSurface);
 
 //        mController.show(0);
-        vidSurface.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return true;
-            }
-        });
+            vidSurface.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    return true;
+                }
+            });
+        }
     }
 
     private void setVideoSize() {

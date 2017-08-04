@@ -109,8 +109,8 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
             final YouTubeVideo video = (YouTubeVideo) v.getTag();
             AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
             builder.setTitle("Please choose option");
-            String[] searchOptions = new String[]{"add to playlist", "download"};
-            String[] recentOptions = new String[]{"add to playlist", "remove from the list", "download"};
+            String[] searchOptions = new String[]{"add to playlist", "download video", "download audio"};
+            String[] recentOptions = new String[] {"add to playlist", "remove from the list", "download video", "download audio"};
             final String[] options;
             if (mFragment.equals("searchFragment")) {
                 options = searchOptions;
@@ -131,9 +131,14 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
                                 itemEventsListener.onRemoveClicked(video);
                             }
                             break;
-                        case "download":
+                        case "download video":
                             if (itemEventsListener != null) {
-                                itemEventsListener.onDownloadClicked(video);
+                                itemEventsListener.onDownloadClicked(video, Config.MediaType.VIDEO);
+                            }
+                            break;
+                        case "download audio":
+                            if (itemEventsListener != null) {
+                                itemEventsListener.onDownloadClicked(video, Config.MediaType.AUDIO);
                             }
                             break;
                     }

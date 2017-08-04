@@ -39,6 +39,7 @@ import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.interfaces.ItemEventsListener;
 import com.pawelpaszki.youtubeplus.interfaces.OnItemSelected;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
+import com.pawelpaszki.youtubeplus.utils.Config;
 import com.pawelpaszki.youtubeplus.utils.MediaDownloader;
 import com.pawelpaszki.youtubeplus.utils.NetworkConf;
 import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
@@ -211,7 +212,7 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
     }
 
     @Override
-    public void onDownloadClicked(YouTubeVideo video) {
-        MediaDownloader.downloadMedia(video, context);
+    public void onDownloadClicked(YouTubeVideo video, Config.MediaType type) {
+        MediaDownloader.downloadMedia(video, context, type);
     }
 }

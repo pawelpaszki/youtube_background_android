@@ -29,7 +29,7 @@ import at.huber.youtubeExtractor.YtFile;
 
 class MediaStorageHandler {
 
-    static void downloadVideo(final YouTubeVideo video, final Context context) {
+    static void downloadVideo(final YouTubeVideo video, final Context context, final Config.MediaType type) {
         String youtubeLink = Config.YOUTUBE_BASE_URL + video.getId();
         new YouTubeExtractor(context) {
 
@@ -47,23 +47,49 @@ class MediaStorageHandler {
                 }
                 YtFile ytFile;
                 int index;
-
-                if(iTags.contains(22)) {
-                    ytFile = ytFiles.get(22);
-                    index = 22;
-                } else if(iTags.contains(18)) {
-                    ytFile = ytFiles.get(18);
-                    index = 18;
-                } else if(iTags.contains(36)) {
-                    ytFile = ytFiles.get(36);
-                    index = 36;
-                } else if(iTags.contains(17)) {
-                    ytFile = ytFiles.get(17);
-                    index = 17;
+                if(type.equals(Config.MediaType.VIDEO)) {
+                    if(iTags.contains(22)) {
+                        ytFile = ytFiles.get(22);
+                        index = 22;
+                    } else if(iTags.contains(18)) {
+                        ytFile = ytFiles.get(18);
+                        index = 18;
+                    } else if(iTags.contains(36)) {
+                        ytFile = ytFiles.get(36);
+                        index = 36;
+                    } else if(iTags.contains(17)) {
+                        ytFile = ytFiles.get(17);
+                        index = 17;
+                    } else {
+                        ytFile = ytFiles.get(ytFiles.size() - 1);
+                        index = ytFiles.keyAt(ytFiles.size() - 1);
+                    }
                 } else {
-                    ytFile = ytFiles.get(ytFiles.size() - 1);
-                    index = ytFiles.keyAt(ytFiles.size() - 1);
+                    if(iTags.contains(251)) {
+                        ytFile = ytFiles.get(251);
+                        index = 251;
+                    } else if(iTags.contains(140)) {
+                        ytFile = ytFiles.get(140);
+                        index = 140;
+                    } else if(iTags.contains(171)) {
+                        ytFile = ytFiles.get(171);
+                        index = 171;
+                    } else if(iTags.contains(250)) {
+                        ytFile = ytFiles.get(250);
+                        index = 250;
+                    } else if(iTags.contains(249)) {
+                        ytFile = ytFiles.get(249);
+                        index = 249;
+                    } else if(iTags.contains(139)) {
+                        ytFile = ytFiles.get(139);
+                        index = 139;
+                    } else {
+                        Toast.makeText(YTApplication.getAppContext(), "No audio file available",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                 }
+
 
                 Log.i("video tag", String.valueOf(index));
                 String filename = video.getId() + "." + ytFile.getFormat().getExt();

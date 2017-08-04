@@ -16,6 +16,7 @@ import com.pawelpaszki.youtubeplus.R;
 import com.pawelpaszki.youtubeplus.interfaces.ItemEventsListener;
 import com.pawelpaszki.youtubeplus.interfaces.ItemTouchHelperAdapter;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
+import com.pawelpaszki.youtubeplus.utils.Config;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,7 +76,7 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
                 AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
                 builder.setTitle("Please choose option");
                 String [] downloadsOptions = new String[] {"add to playlist", "remove from the list"};
-                String [] playlistsOptions = new String[] {"add to playlist", "remove from the list", "download"};
+                String [] playlistsOptions = new String[] {"add to playlist", "remove from the list", "download video", "download audio"};
                 final String [] options;
                 if(mFragment.equals("downloadedFragment")) {
                     options = downloadsOptions;
@@ -96,9 +97,14 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
                                     itemEventsListener.onRemoveClicked(video);
                                 }
                                 break;
-                            case "download":
+                            case "download video":
                                 if (itemEventsListener != null) {
-                                    itemEventsListener.onDownloadClicked(video);
+                                    itemEventsListener.onDownloadClicked(video, Config.MediaType.VIDEO);
+                                }
+                                break;
+                            case "download audio":
+                                if (itemEventsListener != null) {
+                                    itemEventsListener.onDownloadClicked(video, Config.MediaType.AUDIO);
                                 }
                                 break;
                         }
