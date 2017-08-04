@@ -29,6 +29,8 @@ import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
 
 import java.util.ArrayList;
 
+import static com.pawelpaszki.youtubeplus.database.YouTubeSqlDb.VIDEOS_TYPE.CUSTOM;
+
 /**
  * SQLite database for storing recentlyWatchedVideos and playlist
  * Created by Stevan Medic on 17.3.16..
@@ -72,7 +74,7 @@ public class YouTubeSqlDb {
     }
 
     public Videos videos(VIDEOS_TYPE type) {
-        if (type == VIDEOS_TYPE.CUSTOM) {
+        if (type == CUSTOM) {
             return customVideos;
         } else if (type == VIDEOS_TYPE.RECENTLY_WATCHED) {
             return recentlyWatchedVideos;
@@ -206,6 +208,22 @@ public class YouTubeSqlDb {
                 }
             }
             c.close();
+            if(tableName.equals(CUSTOM_TABLE_NAME)) {
+                Log.i("custom", "true");
+                ArrayList<YouTubeVideo> sortedList = new ArrayList<>();
+                ArrayList<String> ids = SharedPrefs.getPlaylistVideoIds(context, playListName);
+                for(int i = 0; i < ids.size(); i++) {
+                    for(int j = 0; j < list.size(); j++) {
+                        if(list.get(j).getId().equals(ids.get(i))) {
+                            sortedList.add(i, list.get(j));
+                            break;
+                        }
+                    }
+                }
+                return sortedList;
+            }
+
+
             return list;
         }
 
@@ -216,10 +234,10 @@ public class YouTubeSqlDb {
          * @return
          */
         public boolean delete(String videoId, String type, Context context) {
-            if(!type.equals(VIDEOS_TYPE.CUSTOM)) {
+            if(!type.equals(CUSTOM)) {
                 return dbHelper.getWritableDatabase().delete(tableName,
                         YouTubeVideoEntry.COLUMN_VIDEO_ID + "='" + videoId + "'", null) > 0;
-            } else if (type.equals(VIDEOS_TYPE.CUSTOM)) {
+            } else if (type.equals(CUSTOM)) {
                 SharedPrefs.setVideoCounter(videoId, SharedPrefs.getVideoCounter(videoId, context) - 1, context);
                 if(SharedPrefs.getVideoCounter(videoId, context) == 0) {
                     return dbHelper.getWritableDatabase().delete(tableName,

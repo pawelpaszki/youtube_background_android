@@ -160,6 +160,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         }
         if (mPlayReceiver != null) {
             IntentFilter intentFilter = new IntentFilter(ACTION_PLAY);
+            intentFilter.setPriority(999);
             getActivity().registerReceiver(mPlayReceiver, intentFilter);
         }
         if (mMediaChangeReceiver != null) {
@@ -172,10 +173,12 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         }
         if (mPlaybackUpdatedReceiver != null) {
             IntentFilter intentFilter = new IntentFilter(ACTION_SEEKBAR_UPDATE);
+            intentFilter.setPriority(999);
             getActivity().registerReceiver(mPlaybackUpdatedReceiver, intentFilter);
         }
         if (mVideoUpdateReceiver != null) {
             IntentFilter intentFilter = new IntentFilter(ACTION_VIDEO_UPDATE);
+            intentFilter.setPriority(999);
             getActivity().registerReceiver(mVideoUpdateReceiver, intentFilter);
         }
         if (mStopReceiver != null) {
@@ -216,15 +219,12 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 stopPlayer();
             }
         }
-        ArrayList<YouTubeVideo> updatedVideos = new ArrayList<>();
-        // TODO rearrange videos
         mReceiversRegistered = false;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        //Log.i("on resume", "downloaded");
         resumeAllListeners();
     }
 
@@ -460,11 +460,15 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                     }
                 } else {
                     int progress = intent.getIntExtra("progress", 0);
-                    Log.i("progress in fragment", String.valueOf(progress));
+//                    long fragmentTime = System.currentTimeMillis();
+//                    long broadcastTime= intent.getLongExtra("timestamp", System.currentTimeMillis());
+//                    Log.i("timestamp broadcast", String.valueOf(broadcastTime));
+//                    Log.i("timestamp fragment", String.valueOf(fragmentTime));
+//                    Log.i("progress in fragment", String.valueOf(progress));
                     int mediaPlayerProgress = mediaPlayer.getCurrentPosition();
                     Log.i("mplayer progress before", String.valueOf(mediaPlayerProgress));
 
-                    Log.i("mplayer progress after", String.valueOf(mediaPlayerProgress));
+
 //                    if(mSeekAdjustmentRequired) {
 //                        mediaPlayer.seekTo(progress);
 //                        mSeekAdjustmentRequired = false;
@@ -472,6 +476,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                         if(progress > 10000 && Math.abs(progress - mediaPlayerProgress) > 300) {
                         mediaPlayer.seekTo(progress);
                     }
+                    Log.i("mplayer progress after", String.valueOf(mediaPlayerProgress));
                 }
             } else {
                 if (mediaPlayer != null) {

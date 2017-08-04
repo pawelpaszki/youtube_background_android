@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -44,6 +45,7 @@ import com.pawelpaszki.youtubeplus.MainActivity;
 import com.pawelpaszki.youtubeplus.R;
 import com.pawelpaszki.youtubeplus.YTApplication;
 import com.pawelpaszki.youtubeplus.adapters.NoThumbnailAdapter;
+import com.pawelpaszki.youtubeplus.adapters.SimpleItemTouchHelperCallback;
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.interfaces.ItemEventsListener;
 import com.pawelpaszki.youtubeplus.interfaces.OnItemSelected;
@@ -56,9 +58,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.pawelpaszki.youtubeplus.MainActivity.DOWNLOADED;
 import static com.pawelpaszki.youtubeplus.MainActivity.PLAYLISTS;
 import static com.pawelpaszki.youtubeplus.MainActivity.fragmentName;
+import static com.pawelpaszki.youtubeplus.adapters.NoThumbnailAdapter.playListRearranged;
 import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlaylistSelectionDialog;
 
 /**
@@ -78,7 +80,7 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
     private AlertDialog.Builder mAlertBuilder;
     private Spinner mSpinner;
     private ArrayAdapter<String> mSpinnerArrayAdapter;
-
+    private int mPreviousSpinnerItem = 0;
 
     public PlayListsFragment() {
         // Required empty public constructor
@@ -138,6 +140,11 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
         noThumbnailAdapter.setOnItemEventsListener(this);
         playListsView.setAdapter(noThumbnailAdapter);
 
+        ItemTouchHelper.Callback callback =
+                new SimpleItemTouchHelperCallback(noThumbnailAdapter);
+        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+        touchHelper.attachToRecyclerView(playListsView);
+
         ImageView deletePlayList = (ImageView) playListManagement.findViewById(R.id.remove_playlist_button);
         ImageView addPlayList = (ImageView) playListManagement.findViewById(R.id.add_playlist_button);
 
@@ -154,6 +161,7 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Log.i("position selected", String.valueOf(position));
+
                 loadPlaylist();
             }
 
@@ -325,6 +333,10 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
     }
 
     private void loadPlaylist() {
+        if(playListRearranged) {
+            playListRearranged = false;
+            refreshDB();
+        }
         customVideos.clear();
         if(mSpinner.getSelectedItem() != null) {
             if(SharedPrefs.getPlayListNames(context) != null && SharedPrefs.getPlayListNames(context).size() > 0) {
@@ -333,6 +345,7 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
                 customVideos.addAll(YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.CUSTOM).readAll(mSpinner.getSelectedItem().toString(), context));
             }
         }
+        mPreviousSpinnerItem = mSpinner.getSelectedItemPosition();
         noThumbnailAdapter.notifyDataSetChanged();
     }
 
@@ -351,6 +364,17 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
         super.onDetach();
         this.itemSelected = null;
         this.context = null;
+    }
+
+    public void refreshDB() {
+        ArrayList<String> ids = new ArrayList<>();
+        for(int i = 0; i < noThumbnailAdapter.getVideoList().size(); i++) {
+            ids.add(noThumbnailAdapter.getIds().get(i).getId());
+        }
+        SharedPrefs.savePlaylistVideoIds(context, ids, mSpinner.getItemAtPosition(mPreviousSpinnerItem).toString());
+        mPreviousSpinnerItem = mSpinner.getSelectedItemPosition();
+        customVideos = noThumbnailAdapter.getVideoList();
+        noThumbnailAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -379,6 +403,10 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
     public void onItemClick(YouTubeVideo video) {
         fragmentName = PLAYLISTS;
         YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).create(video);
+        if(playListRearranged) {
+            playListRearranged = false;
+            refreshDB();
+        }
         itemSelected.onPlaylistSelected(customVideos, customVideos.indexOf(video));
     }
 

@@ -47,8 +47,8 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
 
      private ArrayList<YouTubeVideo> videoList;
     private String mFragment;
-
-     public static boolean downloadedRearranged;
+    public static boolean downloadedRearranged;
+    public static boolean playListRearranged;
     private ItemEventsListener<YouTubeVideo> itemEventsListener;
 
     public NoThumbnailAdapter(Context context, List<YouTubeVideo> list, String fragment) {
@@ -134,11 +134,15 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
          if(isLongPressEnabled()) {
              if(mFragment.equals("downloadedFragment")) {
                  downloadedRearranged = true;
+             } else if (mFragment.equals("playListsFragment")) {
+                 playListRearranged = true;
              }
              Collections.swap(ids, fromPosition, toPosition);
              YouTubeVideo prev = videoList.remove(fromPosition);
-             Log.i("from -> to ", fromPosition + "->" + toPosition);
+
              videoList.add(toPosition > fromPosition ? toPosition - 1 : toPosition, prev);
+             Log.i("from -> to ", fromPosition + "->" + toPosition);
+             Log.i("from ", "/n" + videoList.toString());
              notifyItemMoved(fromPosition, toPosition);
          }
      }

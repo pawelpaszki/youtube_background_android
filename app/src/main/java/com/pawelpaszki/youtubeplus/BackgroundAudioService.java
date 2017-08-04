@@ -344,6 +344,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
             if(mMediaPlayer != null) {
                 if(!mMediaPlayer.isPlaying()) {
                     Intent new_intent = new Intent(ACTION_MEDIA_PAUSED);
+                    new_intent.setFlags(FLAG_RECEIVER_FOREGROUND);
                     new_intent.putExtra("title", videoItem.getTitle());
                     new_intent.putExtra("progress", mMediaPlayer.getCurrentPosition());
                     sendBroadcast(new_intent);
@@ -366,12 +367,15 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                         if(mMediaPlayer.isPlaying()) {
                             if(mSetSeekToPosition != mMediaPlayer.getCurrentPosition() * 1000) {
                                 Intent new_intent = new Intent();
+                                long timestamp= System.currentTimeMillis();
+                                Log.i("progress curr service", String.valueOf(timestamp));
                                 new_intent.setAction(ACTION_SEEKBAR_UPDATE);
+                                new_intent.setFlags(FLAG_RECEIVER_FOREGROUND);
                                 new_intent.putExtra("videoId", videoId);
                                 new_intent.putExtra("title", videoItem.getTitle());
                                 new_intent.putExtra("progress", mMediaPlayer.getCurrentPosition());
                                 new_intent.putExtra("duration", videoItem.getDuration());
-                                new_intent.setFlags(FLAG_RECEIVER_FOREGROUND);
+                                new_intent.putExtra("timestamp", timestamp);
                                 sendBroadcast(new_intent);
                                 mSeekToSet = false;
                                 Log.i("progress value", String.valueOf(mMediaPlayer.getCurrentPosition()));
@@ -711,6 +715,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                             sendBroadcast(videoItem.getDuration());
                             Intent new_intent = new Intent();
                             new_intent.setAction(ACITON_VIDEO_CHANGE);
+                            new_intent.setFlags(FLAG_RECEIVER_FOREGROUND);
                             new_intent.putExtra("videoId", filename);
                             sendBroadcast(new_intent);
 
@@ -890,6 +895,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     private void sendBroadcast(String duration) {
         Intent new_intent = new Intent();
         new_intent.setAction(ACTION_PLAYBACK_STARTED);
+        new_intent.setFlags(FLAG_RECEIVER_FOREGROUND);
         new_intent.putExtra("duration", duration);
         new_intent.putExtra("title", videoItem.getTitle());
         new_intent.putExtra("playlist", videoItem.getTitle());

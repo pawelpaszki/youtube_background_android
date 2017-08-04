@@ -86,6 +86,7 @@ import java.util.List;
 import static android.content.Intent.FLAG_RECEIVER_FOREGROUND;
 import static com.pawelpaszki.youtubeplus.R.layout.suggestions;
 import static com.pawelpaszki.youtubeplus.adapters.NoThumbnailAdapter.downloadedRearranged;
+import static com.pawelpaszki.youtubeplus.adapters.NoThumbnailAdapter.playListRearranged;
 import static com.pawelpaszki.youtubeplus.adapters.SimpleItemTouchHelperCallback.setIsLongPressEnabled;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACITON_ACTIVITY_RESUMED;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_LOOPING_SELECTED;
@@ -396,6 +397,12 @@ public class MainActivity extends AppCompatActivity implements
                             downloadedFragment.refreshDB();
                         }
                     }
+                    if(viewPager.getCurrentItem() == 1 && j != 1) {
+                        if(playListRearranged) {
+                            playListRearranged = false;
+                            playListsFragment.refreshDB();
+                        }
+                    }
                     if(j!= 0) {
                         downloadedFragment.stopAllListeners(false);
                     } else {
@@ -430,7 +437,19 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         }, 1);
+    }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(downloadedRearranged) {
+            downloadedRearranged = false;
+            downloadedFragment.refreshDB();
+        }
+        if(playListRearranged) {
+            playListRearranged = false;
+            playListsFragment.refreshDB();
+        }
     }
 
     private void minimiseToolbar() {
