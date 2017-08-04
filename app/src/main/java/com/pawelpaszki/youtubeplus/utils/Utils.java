@@ -107,11 +107,16 @@ public class Utils {
 
         StringBuilder contentDetails = new StringBuilder();
         for (SearchResult result : searchResults) {
-            String id = result.getId().getVideoId();
-            if (id != null) {
-                contentDetails.append(id);
-                contentDetails.append(",");
+            if(result!= null) {
+                if(result.getId() != null) {
+                    String id = result.getId().getVideoId();
+                    if (id != null) {
+                        contentDetails.append(id);
+                        contentDetails.append(",");
+                    }
+                }
             }
+
         }
 
         if (contentDetails.length() == 0) {

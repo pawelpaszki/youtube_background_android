@@ -12,6 +12,7 @@ import android.os.Environment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -354,7 +355,6 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                     mediaPlayer.setDataSource(Uri.parse(files[index].getAbsolutePath()).getPath());
                     mediaPlayer.prepare();
                     mediaPlayer.setOnPreparedListener(this);
-
                     mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 } catch (Exception e) {
                     e.printStackTrace();

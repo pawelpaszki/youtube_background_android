@@ -66,25 +66,30 @@ public class YouTubeVideosLoader extends AsyncTaskLoader<List<YouTubeVideo>> {
                 //searchList list info
                 item.setTitle(searchResults.get(i).getSnippet().getTitle());
                 item.setThumbnailURL(searchResults.get(i).getSnippet().getThumbnails().getDefault().getUrl());
-                item.setId(searchResults.get(i).getId().getVideoId());
-                //video info
-                if (videoResults.get(i) != null) {
-                    if (videoResults.get(i).getStatistics() != null) {
-                        BigInteger viewsNumber = videoResults.get(i).getStatistics().getViewCount();
-                        String viewsFormatted = NumberFormat.getIntegerInstance().format(viewsNumber) + " views";
-                        item.setViewCount(viewsFormatted);
+                try {
+                    item.setId(searchResults.get(i).getId().getVideoId());
+                    //video info
+                    if (videoResults.get(i) != null) {
+                        if (videoResults.get(i).getStatistics() != null) {
+                            BigInteger viewsNumber = videoResults.get(i).getStatistics().getViewCount();
+                            String viewsFormatted = NumberFormat.getIntegerInstance().format(viewsNumber) + " views";
+                            item.setViewCount(viewsFormatted);
+                        }
+                        if (videoResults.get(i).getContentDetails() != null) {
+                            String isoTime = videoResults.get(i).getContentDetails().getDuration();
+                            String time = Utils.convertISO8601DurationToNormalTime(isoTime);
+                            item.setDuration(time);
+                        }
+                    } else {
+                        item.setDuration("");
                     }
-                    if (videoResults.get(i).getContentDetails() != null) {
-                        String isoTime = videoResults.get(i).getContentDetails().getDuration();
-                        String time = Utils.convertISO8601DurationToNormalTime(isoTime);
-                        item.setDuration(time);
-                    }
-                } else {
-                    item.setDuration("");
+
+                    //add to the list
+                    items.add(item);
+                } catch (Exception e) {
+                    //do nothing
                 }
 
-                //add to the list
-                items.add(item);
             }
 
         } catch (IOException e) {

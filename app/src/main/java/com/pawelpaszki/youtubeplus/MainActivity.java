@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.MatrixCursor;
 import android.graphics.Color;
@@ -62,6 +63,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.fragments.DownloadedFragment;
@@ -81,6 +83,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static android.content.Intent.FLAG_RECEIVER_FOREGROUND;
 import static com.pawelpaszki.youtubeplus.R.layout.suggestions;
 import static com.pawelpaszki.youtubeplus.adapters.NoThumbnailAdapter.downloadedRearranged;
 import static com.pawelpaszki.youtubeplus.adapters.SimpleItemTouchHelperCallback.setIsLongPressEnabled;
@@ -652,6 +655,7 @@ public class MainActivity extends AppCompatActivity implements
             public void run()
             {
                 Intent new_intent = new Intent();
+                new_intent.setFlags(FLAG_RECEIVER_FOREGROUND);
                 new_intent.setAction(ACTION_VIDEO_UPDATE);
                 sendBroadcast(new_intent);
                 //Log.i("setaction", "vid update activity");
@@ -673,6 +677,7 @@ public class MainActivity extends AppCompatActivity implements
 
         Intent new_intent = new Intent();
         new_intent.setAction(ACITON_ACTIVITY_RESUMED);
+        new_intent.setFlags(FLAG_RECEIVER_FOREGROUND);
         sendBroadcast(new_intent);
     }
 
