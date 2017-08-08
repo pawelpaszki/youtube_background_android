@@ -21,7 +21,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
-import android.util.Log;
 
 import com.pawelpaszki.youtubeplus.model.YouTubePlaylist;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
@@ -81,7 +80,6 @@ public class YouTubeSqlDb {
         } else if (type == VIDEOS_TYPE.DOWNLOADED) {
             return downloadedVideos;
         }
-        Log.e(TAG, "Error. Unknown video type!");
         return null;
     }
 
@@ -209,7 +207,6 @@ public class YouTubeSqlDb {
             }
             c.close();
             if(tableName.equals(CUSTOM_TABLE_NAME)) {
-                Log.i("custom", "true");
                 ArrayList<YouTubeVideo> sortedList = new ArrayList<>();
                 ArrayList<String> ids = SharedPrefs.getPlaylistVideoIds(context, playListName);
                 for(int i = 0; i < ids.size(); i++) {

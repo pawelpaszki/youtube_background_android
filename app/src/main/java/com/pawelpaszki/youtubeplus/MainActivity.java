@@ -146,8 +146,6 @@ public class MainActivity extends AppCompatActivity implements
     private BroadcastReceiver mPlaybackStartedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.i("extras", intent.getStringExtra("duration"));
-
             setDuration(intent.getStringExtra("duration"));
             String title = intent.getStringExtra("title");
             mTitleTextView.setText(title);
@@ -161,7 +159,6 @@ public class MainActivity extends AppCompatActivity implements
         @Override
         public void onReceive(Context context, Intent intent) {
             int progress = intent.getIntExtra("progress", 0);
-            //Log.i("progress received", String.valueOf(progress));
             if(progress != mProgressSet && progress != mPausedAt) {
                 setPauseIcon();
                 String duration = intent.getStringExtra("duration");
@@ -171,7 +168,6 @@ public class MainActivity extends AppCompatActivity implements
                         mDurationSeekbar.setMax(durationValue);
                     }
                 }
-                //Log.i("activity progress", String.valueOf(progress));
                 mDurationSeekbar.setProgress(progress / 1000);
                 String title = intent.getStringExtra("title");
                 if(!mTitleTextView.getText().toString().equals(title)) {
@@ -263,7 +259,6 @@ public class MainActivity extends AppCompatActivity implements
                     Intent new_intent = new Intent();
                     new_intent.setAction(ACTION_VIDEO_UPDATE);
                     sendBroadcast(new_intent);
-                    //Log.i("setaction", "vid update activity");
                 }
             }
 
@@ -292,7 +287,6 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 if(mIsPlaying) {
-                    //Log.i("progress set", String.valueOf(mDurationSeekbar.getProgress()));
                     mProgressSet = mDurationSeekbar.getProgress();
                     sendBroadcast("seek");
                     if(!fragmentName.equals(DOWNLOADED)) {
@@ -341,7 +335,6 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
                 if(mHasPlaybackStarted) {
-                    Log.i("button pressed", "next");
                     sendBroadcast("next");
                     setPlayIconAndDisableControls(true);
                     mDurationSeekbar.setProgress(0);
@@ -387,10 +380,6 @@ public class MainActivity extends AppCompatActivity implements
             mControls.get(i).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    // hide keyboard
-//                    InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-//                    inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-                    //Log.i("page selected", String.valueOf(j));
                     if(viewPager.getCurrentItem() == 0 && j != 0) {
                         if(downloadedRearranged) {
                             downloadedRearranged = false;
@@ -407,7 +396,6 @@ public class MainActivity extends AppCompatActivity implements
                         downloadedFragment.stopAllListeners(false);
                     } else {
                         if(fragmentName.equals(DOWNLOADED)) {
-                            //Log.i("resume listeners", "true");
                             downloadedFragment.resumeAllListeners();
                         }
                     }
@@ -476,7 +464,6 @@ public class MainActivity extends AppCompatActivity implements
 
 
     private void setMediaPlayedIcon() {
-        Log.i("fragment name", fragmentName);
         if(mMediaIndicator.getVisibility() != View.INVISIBLE) {
             mMediaIndicator.setVisibility(View.VISIBLE);
             mListIndicator.setVisibility(View.VISIBLE);
@@ -618,7 +605,6 @@ public class MainActivity extends AppCompatActivity implements
         intent.setAction(ACTION_LOOPING_SELECTED);
         intent.putExtra("Repeat", isLooping);
         sendBroadcast(intent);
-        Log.i("Repeat", String.valueOf(isLooping));
 
     }
 
@@ -677,7 +663,6 @@ public class MainActivity extends AppCompatActivity implements
                 new_intent.setFlags(FLAG_RECEIVER_FOREGROUND);
                 new_intent.setAction(ACTION_VIDEO_UPDATE);
                 sendBroadcast(new_intent);
-                //Log.i("setaction", "vid update activity");
             }
         }, 2000);
         if (mPlaybackStartedReceiver != null) {

@@ -12,8 +12,6 @@ import android.os.Environment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -44,7 +42,6 @@ import com.pawelpaszki.youtubeplus.utils.SharedPrefs;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Iterator;
 
 import static com.pawelpaszki.youtubeplus.MainActivity.DOWNLOADED;
@@ -113,7 +110,6 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                     mContainerWidth = mVideosContainer.getWidth();
                     SharedPrefs.setVideoContainerHeight(context, mContainerHeight);
                     SharedPrefs.setVideoContainerWidth(context, mContainerWidth);
-                    Log.i("Container height", String.valueOf(mContainerHeight));
                     mVideosContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
 
                     android.widget.FrameLayout.LayoutParams params = new android.widget.FrameLayout.LayoutParams(mContainerWidth, mContainerWidth * 3/4);
@@ -256,7 +252,6 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
 
     @Override
     public void onRemoveClicked(YouTubeVideo video) {
-        Log.i("remove clicked","true");
         if(!fragmentName.contains(video.getTitle())) {
             downloadedVideos.remove(video);
             String filename = video.getId();
@@ -279,14 +274,12 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
 
     @Override
     public void onAddClicked(YouTubeVideo video) {
-        //Log.i("add clicked","download fragment");
         showPlaylistSelectionDialog(context, video);
     }
 
 
     @Override
     public void onItemClick(final YouTubeVideo video) {
-        //Log.i("item clicked", "downloaded");
         fragmentName = DOWNLOADED;
         if (fileExists(video)) {
             Intent serviceIntent = new Intent(getActivity(), BackgroundAudioService.class);
@@ -325,6 +318,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         for(int i = videoListAdapter.getVideoList().size() - 1; i >= 0; i--) {
             YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).create(videoListAdapter.getIds().get(i));
         }
+        downloadedVideos = videoListAdapter.getVideoList();
         videoListAdapter.notifyDataSetChanged();
     }
 
@@ -360,7 +354,6 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             int index = -1;
             for (int i = 0; i < files.length; i++) {
                 if (files[i].getAbsolutePath().contains(video.getId())) {
-                    Log.i("file in download", files[i].getAbsolutePath());
                     index = i;
                     break;
                 }
@@ -440,7 +433,6 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         if (intent == null || intent.getAction() == null)
             return;
         String action = intent.getAction();
-        //Log.i("action", action);
         if (action.equalsIgnoreCase(ACTION_PLAY)) {
             if (fragmentName.equals(DOWNLOADED)) {
                 if (mediaPlayer != null) {

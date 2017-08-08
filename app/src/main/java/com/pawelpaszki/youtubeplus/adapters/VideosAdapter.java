@@ -17,22 +17,15 @@ package com.pawelpaszki.youtubeplus.adapters;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.pawelpaszki.youtubeplus.R;
-import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.interfaces.ItemEventsListener;
 import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 import com.pawelpaszki.youtubeplus.utils.Config;
@@ -72,7 +65,6 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
         Picasso.with(context).load(video.getThumbnailURL()).into(holder.thumbnail);
 
         holder.title.setText(video.getTitle());holder.duration.setText(video.getDuration());
-        Log.i("views", video.getViewCount());
         String views;
         if(video.getViewCount().length() < 10) {
             views = video.getViewCount();
@@ -148,7 +140,6 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
             });
             AlertDialog alert = builder.create();
             alert.show();
-            Log.i("long click", "true");
         }
         return true;
     }

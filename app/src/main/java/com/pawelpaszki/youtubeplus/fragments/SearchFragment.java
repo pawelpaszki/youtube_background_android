@@ -22,9 +22,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -123,7 +121,6 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
     }
 
     private void resizeVideoContainer(View v, int height) {
-        Log.i("resized height", String.valueOf(height));
         LinearLayout videosContainer = (LinearLayout) v.findViewById(R.id.videos_container);
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videosContainer.getLayoutParams();
         float density = context.getResources().getDisplayMetrics().density;
@@ -192,7 +189,6 @@ public class SearchFragment extends BaseFragment implements ItemEventsListener<Y
 
     @Override
     public void onAddClicked(YouTubeVideo video) {
-        Log.i("add clicked","search fragment");
         showPlaylistSelectionDialog(context, video);
     }
 

@@ -2,10 +2,8 @@ package com.pawelpaszki.youtubeplus.adapters;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.media.Image;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +17,6 @@ import com.pawelpaszki.youtubeplus.model.YouTubeVideo;
 import com.pawelpaszki.youtubeplus.utils.Config;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static com.pawelpaszki.youtubeplus.adapters.SimpleItemTouchHelperCallback.isLongPressEnabled;
@@ -114,7 +111,6 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
                 });
                 AlertDialog alert = builder.create();
                 alert.show();
-                Log.i("long click", "true");
             }
 
         });
@@ -143,14 +139,18 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
              } else if (mFragment.equals("playListsFragment")) {
                  playListRearranged = true;
              }
-             Collections.swap(ids, fromPosition, toPosition);
-             YouTubeVideo prev = videoList.remove(fromPosition);
-
-             videoList.add(toPosition > fromPosition ? toPosition - 1 : toPosition, prev);
-             Log.i("from -> to ", fromPosition + "->" + toPosition);
-             Log.i("from ", "/n" + videoList.toString());
+             ids = swapArrayItems(ids, fromPosition, toPosition);
+             videoList = swapArrayItems(ids, fromPosition, toPosition);
              notifyItemMoved(fromPosition, toPosition);
          }
+     }
+
+     private ArrayList<YouTubeVideo> swapArrayItems(ArrayList<YouTubeVideo> list, int fromPosition, int toPosition) {
+         ArrayList<YouTubeVideo> newList = new ArrayList<>();
+         newList.addAll(list);
+         newList.set(fromPosition, list.get(toPosition));
+         newList.set(toPosition, list.get(fromPosition));
+         return newList;
      }
 
 

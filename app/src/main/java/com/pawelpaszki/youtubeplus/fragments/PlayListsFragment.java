@@ -128,7 +128,7 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
                     int containerWidth = videosContainer.getWidth();
                     SharedPrefs.setVideoContainerHeight(context, containerHeight);
                     SharedPrefs.setVideoContainerWidth(context, containerWidth);
-                    Log.i("Container height", String.valueOf(containerHeight));
+//                    Log.i("Container height", String.valueOf(containerHeight));
                     videosContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
                 }
             });
@@ -161,8 +161,6 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
         mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.i("position selected", String.valueOf(position));
-
                 loadPlaylist();
             }
 
@@ -213,9 +211,9 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
                     ArrayList<String> playlists = SharedPrefs.getPlayListNames(context);
                     for(String list: playlists) {
                         ArrayList<String> ids = SharedPrefs.getPlaylistVideoIds(context,list);
-                        for(String item: ids) {
-                            Log.i("list + item + counter", list + ": " + item + ": " + String.valueOf(SharedPrefs.getVideoCounter(item, context)));
-                        }
+//                        for(String item: ids) {
+//                            Log.i("list + item + counter", list + ": " + item + ": " + String.valueOf(SharedPrefs.getVideoCounter(item, context)));
+//                        }
                     }
                 }
             }
@@ -267,9 +265,9 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
                                 playListNamesSet.add(item);
                             }
                             SharedPrefs.savePlaylistNames(context, playListNamesSet);
-                            for(String item: SharedPrefs.getPlayListNames(context)) {
-                                Log.i("item", item);
-                            }
+//                            for(String item: SharedPrefs.getPlayListNames(context)) {
+//                                Log.i("item", item);
+//                            }
                             SharedPrefs.savePlaylistNames(context, playListNamesSet);
                             Toast.makeText(YTApplication.getAppContext(), "playlist created",
                                     Toast.LENGTH_SHORT).show();
@@ -312,7 +310,6 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
     @Override
     public void onResume() {
         super.onResume();
-        Log.i("on resume", "playlists");
         customVideos.clear();
         if(SharedPrefs.getPlayListNames(context) != null && SharedPrefs.getPlayListNames(context).size() > 0) {
             String[] data = new String[SharedPrefs.getPlayListNames(context).size()];
@@ -325,9 +322,9 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
             ArrayList<String> playlists = SharedPrefs.getPlayListNames(context);
             for(String list: playlists) {
                 ArrayList<String> ids = SharedPrefs.getPlaylistVideoIds(context,list);
-                for(String item: ids) {
-                    Log.i("list + item + counter", list + ": " + item + ": " + String.valueOf(SharedPrefs.getVideoCounter(item, context)));
-                }
+//                for(String item: ids) {
+//                    Log.i("list + item + counter", list + ": " + item + ": " + String.valueOf(SharedPrefs.getVideoCounter(item, context)));
+//                }
             }
         }
         noThumbnailAdapter.notifyDataSetChanged();
@@ -385,7 +382,6 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
 
     @Override
     public void onRemoveClicked(YouTubeVideo video) {
-        Log.i("remove clicked","playlists");
         customVideos.remove(video);
         ArrayList<String> videos = new ArrayList<>();
         for(YouTubeVideo item: customVideos) {

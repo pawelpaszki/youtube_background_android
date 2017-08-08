@@ -25,6 +25,7 @@ public class MediaDownloader {
             if (file.getAbsolutePath().contains(filename)) {
                 Toast.makeText(YTApplication.getAppContext(), "Media has been downloaded already",
                         Toast.LENGTH_SHORT).show();
+                YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).create(video);
                 return;
             }
         }
