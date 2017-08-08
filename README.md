@@ -12,7 +12,7 @@ In order to use this code, you are required to clone this repo and open it in An
 
 The main goal of this application is to be able to listen to youtube media in the background and watch videos in foreground, once downloaded
 
-## Please note that Google Play prevents from playing YouTube videos in the background, therefore applications like this are not permitted to be pushed to Play Store
+## Please note that Google Play prevents from playing YouTube videos in the background, therefore applications like this are not permitted to be pushed to Play Store. It is also not permitted to directly download media from youtube, as it breaches video owner copyrights 
 
 Swiping from left edge of the screen shows/hides buttons, which open one of four sections of the application:
 _____________________________________________________________________________________________________________
