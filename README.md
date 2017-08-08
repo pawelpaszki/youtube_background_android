@@ -17,8 +17,8 @@ The main goal of this application is to be able to listen to youtube media in th
 Swiping from left edge of the screen shows/hides buttons, which open one of four sections of the application:
 _____________________________________________________________________________________________________________
 
-* Downloaded videos - displays list of downloaded media, which can be individually all collectively removed
-* Playlists - displays view with dropdown of all available playlists (if any). Playlists can be added, removed and individually displayed
+* Downloaded videos - displays list of downloaded media, which can be individually all collectively removed, list items can also be rearranged (when player is stopped)
+* Playlists - displays view with dropdown of all available playlists (if any). Playlists can be added, removed, individually displayed and their items can be rearranged
 * Recently opened media
 * Search view
 
