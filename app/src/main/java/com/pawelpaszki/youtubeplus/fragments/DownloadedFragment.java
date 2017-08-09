@@ -12,6 +12,7 @@ import android.os.Environment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -75,6 +76,8 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     private int mTopMargin;
     private boolean mReceiversRegistered;
     private RecyclerView downloadedListView;
+    private boolean mPrepared;
+    private long mSeekBarSet;
 
     private boolean mHasVideo = false;
 
@@ -217,6 +220,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                 stopPlayer();
             }
         }
+        mPrepared = false;
         mReceiversRegistered = false;
     }
 
@@ -461,7 +465,6 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                             }
                             mHasVideo = false;
                         }
-
                         break;
                     }
                 }
@@ -481,9 +484,26 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                     } else {
                         int progress = intent.getIntExtra("progress", 0);
                         int mediaPlayerProgress = mediaPlayer.getCurrentPosition();
-                        if(progress > 10000 && Math.abs(progress - mediaPlayerProgress) > 300) {
+                        Log.i("progress service", String.valueOf(progress));
+                        Log.i("progress", String.valueOf(mediaPlayerProgress));
+                        long currentTime = System.currentTimeMillis() / 1000;
+                        if(progress > 10000 && Math.abs(progress - mediaPlayerProgress) > 300 && currentTime > mSeekBarSet + 10) {
+                            mediaPlayer.seekTo(progress);
+                        } else if (currentTime > mSeekBarSet + 10 && Math.abs(progress - mediaPlayerProgress) > 300) {
+                            mediaPlayer.seekTo(progress);
+                        } else if (Math.abs(progress - mediaPlayerProgress) > 2000 && currentTime < mSeekBarSet + 10) {
                             mediaPlayer.seekTo(progress);
                         }
+//                        if(currentTime > mSeekBarSet + 10 && Math.abs(progress - mediaPlayerProgress) > 200) {
+//                            if(progress - mediaPlayerProgress < 2000) {
+//                                mediaPlayer.seekTo(progress + progress - mediaPlayerProgress);
+//                            } else {
+//                                mediaPlayer.seekTo(progress);
+//                            }
+//                            mSeekBarSet = System.currentTimeMillis() / 1000;
+//                        } else if (Math.abs(progress - mediaPlayerProgress) > 2000) {
+//                            mediaPlayer.seekTo(progress + 300);
+//                        }
                     }
                 }
             } else {
@@ -495,6 +515,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             stopPlayer();
         } else if (action.equalsIgnoreCase(ACTION_SEEK)) {
             int value = intent.getIntExtra("seekTo", 0);
+            mSeekBarSet = System.currentTimeMillis() / 1000;
             if(mediaPlayer!= null && fragmentName.equals(DOWNLOADED)) {
                 mediaPlayer.seekTo(value);
             }
@@ -566,39 +587,41 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     }
 
     private void setVideoSize() {
+        try {
+            // // Get the dimensions of the video
+            int videoWidth = mediaPlayer.getVideoWidth();
+            int videoHeight = mediaPlayer.getVideoHeight();
 
-        // // Get the dimensions of the video
-        int videoWidth = mediaPlayer.getVideoWidth();
-        int videoHeight = mediaPlayer.getVideoHeight();
+            // Get the width of the screen
+            int width = SharedPrefs.getVideoContainerWidth(context);
+            int containerHeight = SharedPrefs.getVideoContainerHeight(context);
+            int height;
 
-        // Get the width of the screen
-        int width = SharedPrefs.getVideoContainerWidth(context);
-        int containerHeight = SharedPrefs.getVideoContainerHeight(context);
-        int height;
-
-        // Get the SurfaceView layout parameters
-        android.view.ViewGroup.LayoutParams lp = vidSurface.getLayoutParams();
-        lp.width = width;
-        if(videoWidth >= width) {
-            height = videoHeight * width / videoHeight;
-            if(height > containerHeight) {
-                height = containerHeight;
+            // Get the SurfaceView layout parameters
+            android.view.ViewGroup.LayoutParams lp = vidSurface.getLayoutParams();
+            lp.width = width;
+            if(videoWidth >= width) {
+                height = videoHeight * width / videoHeight;
+                if(height > containerHeight) {
+                    height = containerHeight;
+                }
+                lp.height = height;
+            } else {
+                height = videoHeight * width / videoWidth;
+                if(height > containerHeight) {
+                    height = containerHeight;
+                }
+                lp.height = height;
             }
-            lp.height = height;
-        } else {
-            height = videoHeight * width / videoWidth;
-            if(height > containerHeight) {
-                height = containerHeight;
-            }
-            lp.height = height;
+            vidSurface.setLayoutParams(lp);
+            FrameLayout.LayoutParams videoContainerParams = (FrameLayout.LayoutParams) mVideosContainer.getLayoutParams();
+            videoContainerParams.height = mContainerHeight - height + mTopMargin;
+            videoContainerParams.gravity = Gravity.BOTTOM;
+            mVideosContainer.setLayoutParams(videoContainerParams);
+        } catch (ArithmeticException e) {
+            setPlayListSize(false);
         }
 
-
-        vidSurface.setLayoutParams(lp);
-        FrameLayout.LayoutParams videoContainerParams = (FrameLayout.LayoutParams) mVideosContainer.getLayoutParams();
-        videoContainerParams.height = mContainerHeight - height + mTopMargin;
-        videoContainerParams.gravity = Gravity.BOTTOM;
-        mVideosContainer.setLayoutParams(videoContainerParams);
     }
 
     @Override
