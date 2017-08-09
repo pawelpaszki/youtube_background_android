@@ -619,6 +619,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             videoContainerParams.gravity = Gravity.BOTTOM;
             mVideosContainer.setLayoutParams(videoContainerParams);
         } catch (ArithmeticException e) {
+            vidSurface.setVisibility(View.GONE);
             setPlayListSize(false);
         }
 

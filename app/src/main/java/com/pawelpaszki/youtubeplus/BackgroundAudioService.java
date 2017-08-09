@@ -869,6 +869,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                     // Something went wrong we got no urls. Always check this.
                     Toast.makeText(YTApplication.getAppContext(), R.string.failed_playback,
                             Toast.LENGTH_SHORT).show();
+                    extractUrlAndPlay();
 
                 } else {
                     deviceBandwidthSampler.stopSampling();
