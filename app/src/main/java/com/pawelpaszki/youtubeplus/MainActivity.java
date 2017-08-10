@@ -137,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements
     private FloatingActionButton mGoToSearch;
     private FloatingActionButton mGoToPlaylist;
     public static String fragmentName = "";
+    public static int currentFragment = 0;
 
     private SearchFragment searchFragment;
     private RecentlyWatchedFragment recentlyPlayedFragment;
@@ -399,7 +400,7 @@ public class MainActivity extends AppCompatActivity implements
                             downloadedFragment.resumeAllListeners();
                         }
                     }
-
+                    currentFragment = j;
                     viewPager.setCurrentItem(j, false);
                     setButtonBackgroundTint();
                 }

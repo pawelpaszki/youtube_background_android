@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.pawelpaszki.youtubeplus.MainActivity;
 import com.pawelpaszki.youtubeplus.R;
 import com.pawelpaszki.youtubeplus.interfaces.ItemEventsListener;
 import com.pawelpaszki.youtubeplus.interfaces.ItemTouchHelperAdapter;
@@ -134,9 +135,9 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
      @Override
      public void onItemMove(int fromPosition, int toPosition) {
          if(isLongPressEnabled()) {
-             if(mFragment.equals("downloadedFragment")) {
+             if(MainActivity.currentFragment == 0) {
                  downloadedRearranged = true;
-             } else if (mFragment.equals("playListsFragment")) {
+             } else if (MainActivity.currentFragment == 1) {
                  playListRearranged = true;
              }
              ids = swapArrayItems(ids, fromPosition, toPosition);
