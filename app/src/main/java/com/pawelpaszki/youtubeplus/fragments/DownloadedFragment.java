@@ -2,6 +2,7 @@ package com.pawelpaszki.youtubeplus.fragments;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
@@ -9,6 +10,8 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -127,15 +130,40 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         clearRecentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(downloadedVideos.size() > 0) {
-                    Iterator<YouTubeVideo> iter = downloadedVideos.iterator();
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setTitle("Are you sure to remove all of downloaded media?");
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
 
-                    while (iter.hasNext()) {
-                        YouTubeVideo item = iter.next();
-                        iter.remove();
-                        onRemoveClicked(item);
                     }
-                }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+                final AlertDialog dialog = builder.create();
+                dialog.show();
+
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
+                {
+                    @Override
+                    public void onClick(View v)
+                    {
+                        if(downloadedVideos.size() > 0) {
+                            Iterator<YouTubeVideo> iter = downloadedVideos.iterator();
+
+                            while (iter.hasNext()) {
+                                YouTubeVideo item = iter.next();
+                                iter.remove();
+                                onRemoveClicked(item);
+                            }
+                        }
+                        dialog.dismiss();
+                    }
+                });
             }
         });
         downloadedListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
@@ -482,18 +510,41 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                             }
                         }
                     } else {
-                        int progress = intent.getIntExtra("progress", 0);
+                        final int progress = intent.getIntExtra("progress", 0);
                         int mediaPlayerProgress = mediaPlayer.getCurrentPosition();
-                        Log.i("progress service", String.valueOf(progress));
                         Log.i("progress", String.valueOf(mediaPlayerProgress));
+                        Log.i("progress service", String.valueOf(progress));
+                        Log.i("progress seek", String.valueOf(progress));
+
                         long currentTime = System.currentTimeMillis() / 1000;
-                        if(progress > 10000 && Math.abs(progress - mediaPlayerProgress) > 300 && currentTime > mSeekBarSet + 10) {
-                            mediaPlayer.seekTo(progress);
-                        } else if (currentTime > mSeekBarSet + 10 && Math.abs(progress - mediaPlayerProgress) > 300) {
-                            mediaPlayer.seekTo(progress);
-                        } else if (Math.abs(progress - mediaPlayerProgress) > 2000 && currentTime < mSeekBarSet + 10) {
-                            mediaPlayer.seekTo(progress);
+                        if(progress > 10000 && Math.abs(progress - mediaPlayerProgress) > 300 && currentTime > mSeekBarSet + 3) {
+                            Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mediaPlayer.seekTo(progress + 200);
+                                }
+                            }, 200);
+
                         }
+//                      else if (currentTime > mSeekBarSet + 10 && Math.abs(progress - mediaPlayerProgress) > 1000) {
+//                            Handler handler = new Handler();
+//                            handler.postDelayed(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    mediaPlayer.seekTo(progress + 200);
+//                                }
+//                            }, 200);
+//                        }
+//                        else if (Math.abs(progress - mediaPlayerProgress) > 200 && currentTime < mSeekBarSet + 5) {
+//                            Handler handler = new Handler();
+//                            handler.postDelayed(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    mediaPlayer.seekTo(progress + 200);
+//                                }
+//                            }, 200);
+//                        }
 //                        if(currentTime > mSeekBarSet + 10 && Math.abs(progress - mediaPlayerProgress) > 200) {
 //                            if(progress - mediaPlayerProgress < 2000) {
 //                                mediaPlayer.seekTo(progress + progress - mediaPlayerProgress);
