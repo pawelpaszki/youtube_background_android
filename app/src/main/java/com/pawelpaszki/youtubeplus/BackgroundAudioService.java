@@ -57,6 +57,7 @@ import com.squareup.picasso.Target;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import at.huber.youtubeExtractor.VideoMeta;
 import at.huber.youtubeExtractor.YouTubeExtractor;
@@ -73,6 +74,7 @@ import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PLAY;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PREVIOUS;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_SEEK;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_SEEKBAR_UPDATE;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_SHUFFLE_SELECTED;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_STOP;
 
 /**
@@ -100,6 +102,10 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     private boolean mSeekToSet;
 
     private boolean mRepeat;
+    private boolean mShuffle;
+
+    private int mShuffleIndex = 0;
+    private ArrayList<Integer> mIndices = new ArrayList<>();
 
     private ArrayList<YouTubeVideo> youTubeVideos;
 
@@ -166,6 +172,13 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         }
     };
 
+    private BroadcastReceiver mShuffleUpdatedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleIntent(intent);
+        }
+    };
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -184,6 +197,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         initPhoneCallListener();
         deviceBandwidthSampler = DeviceBandwidthSampler.getInstance();
         mRepeat = SharedPrefs.getIsLooping(getApplicationContext());
+        mShuffle = SharedPrefs.getIsShuffleOn(getApplicationContext());
         if (mPauseReceiver != null) {
             IntentFilter intentFilter = new IntentFilter(ACTION_PAUSE);
             registerReceiver(mPauseReceiver, intentFilter);
@@ -219,6 +233,10 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         if(mLoopingUpdateReceiver != null) {
             IntentFilter intentFilter = new IntentFilter(ACTION_LOOPING_SELECTED);
             registerReceiver(mLoopingUpdateReceiver, intentFilter);
+        }
+        if(mShuffleUpdatedReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_SHUFFLE_SELECTED);
+            registerReceiver(mShuffleUpdatedReceiver, intentFilter);
         }
 
     }
@@ -280,6 +298,9 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         if(mLoopingUpdateReceiver != null) {
             unregisterReceiver(mLoopingUpdateReceiver);
         }
+        if(mShuffleUpdatedReceiver != null) {
+            unregisterReceiver(mShuffleUpdatedReceiver);
+        }
         if(mMediaPlayer!=null) {
             if(mMediaPlayer.isPlaying())
                 mMediaPlayer.stop();
@@ -303,8 +324,17 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         Log.i("action intent rec", "true");
         Log.i("media type", String.valueOf(mediaType));
         if(action.equalsIgnoreCase(ACTION_LOOPING_SELECTED)) {
+            mShuffle = false;
             mRepeat = intent.getBooleanExtra("Repeat", false);
             Log.i("rrepeat", String.valueOf(mRepeat));
+        } else if (action.equalsIgnoreCase(ACTION_SHUFFLE_SELECTED)) {
+            mShuffle = true;
+            mIndices.clear();
+            for(int i = 0; i < youTubeVideos.size(); i++) {
+                mIndices.add(i);
+            }
+            Collections.shuffle(mIndices);
+            mRepeat = false;
         } else if (action.equalsIgnoreCase(ACTION_PLAY)) {
             handleMedia(intent);
             handleSeekBarChange(videoItem.getId());
@@ -315,6 +345,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
         } else if (action.equalsIgnoreCase(ACTION_PREVIOUS)) {
             playPrevious();
         } else if (action.equalsIgnoreCase(ACTION_NEXT)) {
+
             playNext();
 //            if(mediaType == ItemType.MEDIA_LOCAL) {
 //                playNext();
@@ -410,6 +441,7 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
                 mMediaPlayer.start();
                 break;
             case YOUTUBE_MEDIA_TYPE_VIDEO:
+                Log.i("media type", "video");
                 mediaType = ItemType.YOUTUBE_MEDIA_TYPE_VIDEO;
                 videoItem = (YouTubeVideo) intent.getSerializableExtra(Config.YOUTUBE_TYPE_VIDEO);
                 if (videoItem.getId() != null) {
@@ -430,10 +462,17 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
 
                 break;
             case MEDIA_LOCAL:
+                mIndices.clear();
+
                 mediaType = ItemType.MEDIA_LOCAL;
                 String filename = (String) intent.getSerializableExtra(Config.LOCAL_MEDIA_FILEAME);
                 videoItem = (YouTubeVideo) intent.getSerializableExtra(Config.YOUTUBE_TYPE_VIDEO);
                 youTubeVideos = (ArrayList<YouTubeVideo>) intent.getSerializableExtra(Config.YOUTUBE_TYPE_PLAYLIST);
+                for(int i = 0; i < youTubeVideos.size(); i++) {
+                    mIndices.add(i);
+                }
+                Collections.shuffle(mIndices);
+                mShuffle = SharedPrefs.getIsShuffleOn(getApplicationContext());
                 playLocalMedia(filename);
                 break;
             default:
@@ -638,13 +677,15 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
             buildNotification(generateAction(R.drawable.ic_pause, "Pause", ACTION_PAUSE));
             return;
         }
-
-        if (youTubeVideos.size() > currentSongIndex + 1) {
-            currentSongIndex++;
-        } else { //play 1st song
-            currentSongIndex = 0;
+        try {
+            if (youTubeVideos.size() > currentSongIndex + 1) {
+                currentSongIndex++;
+            } else { //play 1st song
+                currentSongIndex = 0;
+            }
+        } catch (Exception e) {
+            return;
         }
-
         videoItem = youTubeVideos.get(currentSongIndex);
         playVideo();
         buildNotification(generateAction(R.drawable.ic_pause, "Pause", ACTION_PAUSE));
@@ -738,35 +779,71 @@ public class BackgroundAudioService extends Service implements MediaPlayer.OnCom
     }
 
     private int getNextLocalMediaIndex(String filename) {
-        int index = 0;
-        for(int i = 0; i < youTubeVideos.size(); i++) {
-            if(youTubeVideos.get(i).getId().equals(filename)) {
-                index = i;
-                break;
+        if(!mShuffle) {
+            int index = 0;
+            for(int i = 0; i < youTubeVideos.size(); i++) {
+                if(youTubeVideos.get(i).getId().equals(filename)) {
+                    index = i;
+                    break;
+                }
+            }
+            if(index + 1 == youTubeVideos.size()) {
+                index = 0;
+            } else {
+                index++;
+            }
+            return index;
+        } else {
+            if(youTubeVideos.size() == 1) {
+                return 0;
+            } else {
+                return getNextRandomIndex();
             }
         }
-        if(index + 1 == youTubeVideos.size()) {
-            index = 0;
+    }
+
+    private int getNextRandomIndex() {
+        if(mShuffleIndex > mIndices.size() - 1) {
+            mShuffleIndex = 0;
         } else {
-            index++;
+            mShuffleIndex++;
         }
-        return index;
+        return mIndices.get(mShuffleIndex);
+    }
+
+    private int getPreviousRandomIndex() {
+        if(mShuffleIndex == 0) {
+            mShuffleIndex = mIndices.size() - 1;
+        } else {
+            mShuffleIndex--;
+        }
+        return mIndices.get(mShuffleIndex);
     }
 
     private int getPreviousLocalMediaIndex(String filename) {
-        int index = 0;
-        for(int i = 0; i < youTubeVideos.size(); i++) {
-            if(youTubeVideos.get(i).getId().equals(filename)) {
-                index = i;
-                break;
+        if(!mShuffle) {
+            int index = 0;
+            for(int i = 0; i < youTubeVideos.size(); i++) {
+                if(youTubeVideos.get(i).getId().equals(filename)) {
+                    index = i;
+                    break;
+                }
+            }
+            if(index == 0) {
+                index = youTubeVideos.size()-1;
+            } else {
+                index--;
+            }
+            return index;
+        } else {
+            //TODO
+            if(youTubeVideos.size() == 1) {
+                return 0;
+            } else {
+                return getPreviousRandomIndex();
             }
         }
-        if(index == 0) {
-            index = youTubeVideos.size()-1;
-        } else {
-            index--;
-        }
-        return index;
+
     }
 
     /**

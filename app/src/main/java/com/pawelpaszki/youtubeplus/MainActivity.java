@@ -98,6 +98,7 @@ import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PLAYBACK_STARTED;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PREVIOUS;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_SEEK;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_SEEKBAR_UPDATE;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_SHUFFLE_SELECTED;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_STOP;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_VIDEO_UPDATE;
 import static com.pawelpaszki.youtubeplus.youtube.YouTubeSingleton.getCredential;
@@ -592,20 +593,54 @@ public class MainActivity extends AppCompatActivity implements
 
     private void setIsLoopingIcon(boolean doUpdate) {
         boolean isLooping = SharedPrefs.getIsLooping(MainActivity.this);
+        boolean isShuffleOn = SharedPrefs.getIsShuffleOn(MainActivity.this);
+        Resources res = getResources();
         if(doUpdate) {
-            SharedPrefs.setIsLooping(!isLooping, this);
-            isLooping = !isLooping;
-        }
-
-        if(isLooping) {
-            mLoopVideo.setColorFilter(Color.argb(0, 0, 0, 0));
+            if(isShuffleOn) {
+                SharedPrefs.setIsShuffleOn(false, this);
+                isLooping = false;
+                isShuffleOn = false;
+                SharedPrefs.setIsLooping(false, this);
+                mLoopVideo.setImageDrawable(res.getDrawable(R.drawable.ic_repeat));
+                mLoopVideo.setColorFilter(Color.argb(255, 255, 255, 255));
+                Intent intent = new Intent();
+                intent.setAction(ACTION_LOOPING_SELECTED);
+                intent.putExtra("Repeat", false);
+                sendBroadcast(intent);
+            } else if (!isLooping) {
+                isLooping = true;
+                isShuffleOn = false;
+                SharedPrefs.setIsLooping(true, this);
+                mLoopVideo.setColorFilter(Color.argb(0, 0, 0, 0));
+                Intent intent = new Intent();
+                intent.setAction(ACTION_LOOPING_SELECTED);
+                intent.putExtra("Repeat", true);
+                sendBroadcast(intent);
+            } else {
+                isLooping = false;
+                isShuffleOn = true;
+                SharedPrefs.setIsShuffleOn(true, this);
+                SharedPrefs.setIsLooping(false, this);
+                mLoopVideo.setImageDrawable(res.getDrawable(R.drawable.ic_shuffle));
+                mLoopVideo.setColorFilter(Color.argb(0, 0, 0, 0));
+                Intent intent = new Intent();
+                intent.setAction(ACTION_SHUFFLE_SELECTED);
+                sendBroadcast(intent);
+            }
+            Log.i("shuffle + looping", isShuffleOn + ": " + isLooping);
         } else {
-            mLoopVideo.setColorFilter(Color.argb(255, 255, 255, 255));
+            if(!isLooping && !isShuffleOn) {
+                mLoopVideo.setImageDrawable(res.getDrawable(R.drawable.ic_repeat));
+                mLoopVideo.setColorFilter(Color.argb(255, 255, 255, 255));
+            } else if (isLooping) {
+                mLoopVideo.setImageDrawable(res.getDrawable(R.drawable.ic_repeat));
+                mLoopVideo.setColorFilter(Color.argb(0, 0, 0, 0));
+            } else if (isShuffleOn){
+                mLoopVideo.setImageDrawable(res.getDrawable(R.drawable.ic_shuffle));
+                mLoopVideo.setColorFilter(Color.argb(0, 0, 0, 0));
+            }
+            Log.i("shuffle + looping", isShuffleOn + ": " + isLooping);
         }
-        Intent intent = new Intent();
-        intent.setAction(ACTION_LOOPING_SELECTED);
-        intent.putExtra("Repeat", isLooping);
-        sendBroadcast(intent);
 
     }
 

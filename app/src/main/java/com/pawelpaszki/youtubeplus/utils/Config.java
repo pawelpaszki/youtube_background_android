@@ -34,6 +34,7 @@ public final class Config {
     public static final String ACITON_ACTIVITY_RESUMED = "action_activity_resumed";
     public static final String ACTION_MEDIA_PAUSED = "action_activity_paused";
     public static final String ACTION_LOOPING_SELECTED = "action_looping_selected";
+    public static final String ACTION_SHUFFLE_SELECTED = "action_shuffle_selected";
 
     public enum MediaType {
         VIDEO, AUDIO

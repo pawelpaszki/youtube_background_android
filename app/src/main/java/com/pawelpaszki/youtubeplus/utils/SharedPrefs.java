@@ -29,6 +29,20 @@ public class SharedPrefs {
         return prefs.getBoolean(key, false);
     }
 
+    public static void setIsShuffleOn(boolean value, Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        String key = "isShuffleOn";
+        editor.putBoolean(key, value);
+        editor.apply();
+    }
+
+    public static boolean getIsShuffleOn(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String key = "isShuffleOn";
+        return prefs.getBoolean(key, false);
+    }
+
     static void setDownloadInProgress(String id, boolean value, Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();

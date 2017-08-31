@@ -535,9 +535,6 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
                     } else {
                         final int progress = intent.getIntExtra("progress", 0);
                         int mediaPlayerProgress = mediaPlayer.getCurrentPosition();
-                        Log.i("progress", String.valueOf(mediaPlayerProgress));
-                        Log.i("progress service", String.valueOf(progress));
-                        Log.i("progress seek", String.valueOf(progress));
 
                         long currentTime = System.currentTimeMillis() / 1000;
                         if(progress > 10000 && Math.abs(progress - mediaPlayerProgress) > 300 && currentTime > mSeekBarSet + 3) {
