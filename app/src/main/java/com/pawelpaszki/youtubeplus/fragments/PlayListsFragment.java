@@ -15,9 +15,13 @@
  */
 package com.pawelpaszki.youtubeplus.fragments;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -34,6 +38,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -63,6 +68,8 @@ import static com.pawelpaszki.youtubeplus.MainActivity.PLAYLISTS;
 import static com.pawelpaszki.youtubeplus.MainActivity.fragmentName;
 import static com.pawelpaszki.youtubeplus.adapters.NoThumbnailAdapter.playListRearranged;
 import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlaylistSelectionDialog;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_DOWNLOADED_LIST_REARRANGED;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PLAYLISTS_REARRANGED;
 
 /**
  * Created by Stevan Medic on 21.3.16..
@@ -82,6 +89,7 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
     private Spinner mSpinner;
     private ArrayAdapter<String> mSpinnerArrayAdapter;
     private int mPreviousSpinnerItem = 0;
+    private LinearLayout mTopActionContainer;
 
     public PlayListsFragment() {
         // Required empty public constructor
@@ -169,8 +177,19 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
 
             }
         });
-        LinearLayout deleteRecent = (LinearLayout) v.findViewById(R.id.delete_recent_container);
-        deleteRecent.setVisibility(View.GONE);
+        mTopActionContainer = (LinearLayout) v.findViewById(R.id.delete_recent_container);
+        mTopActionContainer.setVisibility(View.GONE);
+        Button topActionButton = (Button) v.findViewById(R.id.clear_recent);
+        topActionButton.setText(R.string.done);
+        topActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mTopActionContainer.setVisibility(View.GONE);
+                mSpinner.setVisibility(View.VISIBLE);
+                refreshDB();
+            }
+        });
+
 
         deletePlayList.setOnClickListener(new AdapterView.OnClickListener() {
             @Override
@@ -310,6 +329,10 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
     @Override
     public void onResume() {
         super.onResume();
+        if(mPlaylistsRearrangedReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_PLAYLISTS_REARRANGED);
+            getActivity().registerReceiver(mPlaylistsRearrangedReceiver, intentFilter);
+        }
         customVideos.clear();
         if(SharedPrefs.getPlayListNames(context) != null && SharedPrefs.getPlayListNames(context).size() > 0) {
             String[] data = new String[SharedPrefs.getPlayListNames(context).size()];
@@ -328,6 +351,33 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
             }
         }
         noThumbnailAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if(mPlaylistsRearrangedReceiver != null) {
+            getActivity().unregisterReceiver(mPlaylistsRearrangedReceiver);
+        }
+    }
+
+    private BroadcastReceiver mPlaylistsRearrangedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleIntent(intent);
+        }
+    };
+
+    private void handleIntent(Intent intent) {
+        if (intent == null || intent.getAction() == null)
+            return;
+        String action = intent.getAction();
+        if (action.equalsIgnoreCase((ACTION_PLAYLISTS_REARRANGED))) {
+            if (mSpinner.getVisibility() == View.VISIBLE) {
+                mSpinner.setVisibility(View.GONE);
+                mTopActionContainer.setVisibility(View.VISIBLE);
+            }
+        }
     }
 
     private void loadPlaylist() {
@@ -370,9 +420,12 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
             ids.add(noThumbnailAdapter.getIds().get(i).getId());
         }
         SharedPrefs.savePlaylistVideoIds(context, ids, mSpinner.getItemAtPosition(mPreviousSpinnerItem).toString());
-        mPreviousSpinnerItem = mSpinner.getSelectedItemPosition();
-        customVideos = noThumbnailAdapter.getVideoList();
-        noThumbnailAdapter.notifyDataSetChanged();
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        ft.detach(this).attach(this).commit();
+        playListRearranged = false;
+//        mPreviousSpinnerItem = mSpinner.getSelectedItemPosition();
+//        customVideos = noThumbnailAdapter.getVideoList();
+//        noThumbnailAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -398,13 +451,11 @@ public class PlayListsFragment extends BaseFragment implements ItemEventsListene
 
     @Override
     public void onItemClick(YouTubeVideo video) {
-        fragmentName = PLAYLISTS;
-        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).create(video);
-        if(playListRearranged) {
-            playListRearranged = false;
-            refreshDB();
+        if(!playListRearranged) {
+            fragmentName = PLAYLISTS;
+            YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).create(video);
+            itemSelected.onPlaylistSelected(customVideos, customVideos.indexOf(video));
         }
-        itemSelected.onPlaylistSelected(customVideos, customVideos.indexOf(video));
     }
 
     @Override

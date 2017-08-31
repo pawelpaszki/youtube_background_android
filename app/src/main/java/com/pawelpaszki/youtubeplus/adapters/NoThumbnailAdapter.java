@@ -2,6 +2,7 @@ package com.pawelpaszki.youtubeplus.adapters;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -21,6 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.pawelpaszki.youtubeplus.adapters.SimpleItemTouchHelperCallback.isLongPressEnabled;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_DOWNLOADED_LIST_REARRANGED;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PLAYLISTS_REARRANGED;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_VIDEO_UPDATE;
 
 /**
  * Created by PawelPaszki on 07/07/2017.
@@ -137,8 +141,14 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
          if(isLongPressEnabled()) {
              if(MainActivity.currentFragment == 0) {
                  downloadedRearranged = true;
+                 Intent new_intent = new Intent();
+                 new_intent.setAction(ACTION_DOWNLOADED_LIST_REARRANGED);
+                 context.sendBroadcast(new_intent);
              } else if (MainActivity.currentFragment == 1) {
                  playListRearranged = true;
+                 Intent new_intent = new Intent();
+                 new_intent.setAction(ACTION_PLAYLISTS_REARRANGED);
+                 context.sendBroadcast(new_intent);
              }
              ids = swapArrayItems(ids, fromPosition, toPosition);
              videoList = swapArrayItems(ids, fromPosition, toPosition);

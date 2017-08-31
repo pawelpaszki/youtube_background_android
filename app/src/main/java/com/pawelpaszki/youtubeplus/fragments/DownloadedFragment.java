@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -54,6 +55,7 @@ import static com.pawelpaszki.youtubeplus.adapters.NoThumbnailAdapter.downloaded
 import static com.pawelpaszki.youtubeplus.adapters.SimpleItemTouchHelperCallback.setIsLongPressEnabled;
 import static com.pawelpaszki.youtubeplus.dialogs.AddToPlayListDialog.showPlaylistSelectionDialog;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACITON_VIDEO_CHANGE;
+import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_DOWNLOADED_LIST_REARRANGED;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PAUSE;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_PLAY;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_SEEK;
@@ -83,6 +85,7 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
     private long mSeekBarSet;
 
     private boolean mHasVideo = false;
+    private Button mTopActionButton;
 
     public DownloadedFragment() {
         // Required empty public constructor
@@ -126,44 +129,50 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
 //        }
         LinearLayout spinner = (LinearLayout) v.findViewById(R.id.playlist_management);
         spinner.setVisibility(View.GONE);
-        Button clearRecentButton = (Button) v.findViewById(R.id.clear_recent);
-        clearRecentButton.setOnClickListener(new View.OnClickListener() {
+        mTopActionButton = (Button) v.findViewById(R.id.clear_recent);
+        mTopActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                builder.setTitle("Are you sure to remove all of downloaded media?");
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                if(downloadedRearranged) {
+                    refreshDB();
+                    mTopActionButton.setText(R.string.clear_list);
+                    downloadedRearranged = false;
+                } else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    builder.setTitle("Are you sure to remove all of downloaded media?");
+                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
 
-                    }
-                });
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
-                final AlertDialog dialog = builder.create();
-                dialog.show();
-
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
-                {
-                    @Override
-                    public void onClick(View v)
-                    {
-                        if(downloadedVideos.size() > 0) {
-                            Iterator<YouTubeVideo> iter = downloadedVideos.iterator();
-
-                            while (iter.hasNext()) {
-                                YouTubeVideo item = iter.next();
-                                iter.remove();
-                                onRemoveClicked(item);
-                            }
                         }
-                        dialog.dismiss();
-                    }
-                });
+                    });
+                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+                    final AlertDialog dialog = builder.create();
+                    dialog.show();
+
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
+                    {
+                        @Override
+                        public void onClick(View v)
+                        {
+                            if(downloadedVideos.size() > 0) {
+                                Iterator<YouTubeVideo> iter = downloadedVideos.iterator();
+
+                                while (iter.hasNext()) {
+                                    YouTubeVideo item = iter.next();
+                                    iter.remove();
+                                    onRemoveClicked(item);
+                                }
+                            }
+                            dialog.dismiss();
+                        }
+                    });
+                }
             }
         });
         downloadedListView = (RecyclerView) v.findViewById(R.id.fragment_list_items);
@@ -214,6 +223,10 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             IntentFilter intentFilter = new IntentFilter(ACTION_STOP);
             getActivity().registerReceiver(mStopReceiver, intentFilter);
         }
+        if(mDownloadsRearrangedReceiver != null) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_DOWNLOADED_LIST_REARRANGED);
+            getActivity().registerReceiver(mDownloadsRearrangedReceiver, intentFilter);
+        }
         mReceiversRegistered = true;
 
         downloadedVideos.clear();
@@ -243,6 +256,9 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             }
             if (mStopReceiver != null) {
                 getActivity().unregisterReceiver(mStopReceiver);
+            }
+            if(mDownloadsRearrangedReceiver != null) {
+                getActivity().unregisterReceiver(mDownloadsRearrangedReceiver);
             }
             if(mediaPlayer != null) {
                 stopPlayer();
@@ -312,46 +328,47 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
 
     @Override
     public void onItemClick(final YouTubeVideo video) {
-        fragmentName = DOWNLOADED;
-        if (fileExists(video)) {
-            Intent serviceIntent = new Intent(getActivity(), BackgroundAudioService.class);
-            serviceIntent.setAction(ACTION_PLAY);
-            serviceIntent.putExtra(Config.YOUTUBE_TYPE, ItemType.MEDIA_LOCAL);
-            serviceIntent.putExtra(Config.YOUTUBE_TYPE_VIDEO, video);
-            serviceIntent.putExtra(Config.LOCAL_MEDIA_FILEAME, video.getId());
-            serviceIntent.putExtra(Config.YOUTUBE_TYPE_PLAYLIST, (ArrayList) downloadedVideos);
-            getActivity().startService(serviceIntent);
-            setIsLongPressEnabled(false);
-            if(downloadedRearranged) {
-                downloadedRearranged = false;
-                refreshDB();
-            }
-            if(hasVideo(video)) {
-                mHasVideo = true;
-                startVideo(video);
+        if(!downloadedRearranged) {
+            fragmentName = DOWNLOADED;
+            if (fileExists(video)) {
+                Intent serviceIntent = new Intent(getActivity(), BackgroundAudioService.class);
+                serviceIntent.setAction(ACTION_PLAY);
+                serviceIntent.putExtra(Config.YOUTUBE_TYPE, ItemType.MEDIA_LOCAL);
+                serviceIntent.putExtra(Config.YOUTUBE_TYPE_VIDEO, video);
+                serviceIntent.putExtra(Config.LOCAL_MEDIA_FILEAME, video.getId());
+                serviceIntent.putExtra(Config.YOUTUBE_TYPE_PLAYLIST, (ArrayList) downloadedVideos);
+                getActivity().startService(serviceIntent);
+                setIsLongPressEnabled(false);
+                if(hasVideo(video)) {
+                    mHasVideo = true;
+                    startVideo(video);
+                } else {
+                    mHasVideo = false;
+                }
+            } else if (SharedPrefs.getDownloadInProgress(context, video.getId())) {
+                Toast.makeText(YTApplication.getAppContext(), "Media is still being downloaded",
+                        Toast.LENGTH_SHORT).show();
             } else {
-                mHasVideo = false;
+                downloadedVideos.remove(video);
+                YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).delete(video.getId(), YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED.toString(), context);
+                videoListAdapter.notifyDataSetChanged();
+                Toast.makeText(YTApplication.getAppContext(), "Unable to find media",
+                        Toast.LENGTH_SHORT).show();
             }
-        } else if (SharedPrefs.getDownloadInProgress(context, video.getId())) {
-            Toast.makeText(YTApplication.getAppContext(), "Media is still being downloaded",
-                    Toast.LENGTH_SHORT).show();
-        } else {
-            downloadedVideos.remove(video);
-            YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).delete(video.getId(), YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED.toString(), context);
-            videoListAdapter.notifyDataSetChanged();
-            Toast.makeText(YTApplication.getAppContext(), "Unable to find media",
-                    Toast.LENGTH_SHORT).show();
+            YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).create(video);
         }
-        YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.RECENTLY_WATCHED).create(video);
     }
 
     public void refreshDB() {
+
         YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).deleteAll();
         for(int i = videoListAdapter.getVideoList().size() - 1; i >= 0; i--) {
             YouTubeSqlDb.getInstance().videos(YouTubeSqlDb.VIDEOS_TYPE.DOWNLOADED).create(videoListAdapter.getIds().get(i));
         }
-        downloadedVideos = videoListAdapter.getVideoList();
-        videoListAdapter.notifyDataSetChanged();
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        ft.detach(this).attach(this).commit();
+//        downloadedVideos = videoListAdapter.getVideoList();
+//        videoListAdapter.notifyDataSetChanged();
     }
 
     private boolean hasVideo(YouTubeVideo video) {
@@ -455,6 +472,12 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
         }
     };
     private BroadcastReceiver mStopReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleIntent(intent);
+        }
+    };
+    private BroadcastReceiver mDownloadsRearrangedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             handleIntent(intent);
@@ -572,6 +595,10 @@ public class DownloadedFragment extends BaseFragment implements ItemEventsListen
             }
         } else if (action.equalsIgnoreCase(ACTION_VIDEO_UPDATE)) {
             //Log.i("setaction", "vid update fragment");
+        } else if (action.equalsIgnoreCase((ACTION_DOWNLOADED_LIST_REARRANGED))) {
+            if(mTopActionButton.getText().toString().equalsIgnoreCase("clear list")) {
+                mTopActionButton.setText(R.string.done);
+            }
         }
     }
 

@@ -27,6 +27,8 @@ public final class Config {
     public static final String ACTION_SEEK = "action_seek";
     public static final String ACTION_SEEKBAR_UPDATE = "action_update";
     public static final String ACTION_VIDEO_UPDATE = "action_video_update";
+    public static final String ACTION_DOWNLOADED_LIST_REARRANGED = "action_downloaded_list_rearranged";
+    public static final String ACTION_PLAYLISTS_REARRANGED = "action_playlists_rearranged";
     public static final String ACTION_STOP = "action_stop";
     public static final String ACITON_VIDEO_CHANGE = "action_change_media";
     public static final String ACITON_ACTIVITY_RESUMED = "action_activity_resumed";
