@@ -23,7 +23,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.MatrixCursor;
 import android.graphics.Color;
@@ -63,11 +62,9 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.pawelpaszki.youtubeplus.database.YouTubeSqlDb;
 import com.pawelpaszki.youtubeplus.fragments.DownloadedFragment;
-import com.pawelpaszki.youtubeplus.fragments.PlayListsFragment;
 import com.pawelpaszki.youtubeplus.fragments.RecentlyWatchedFragment;
 import com.pawelpaszki.youtubeplus.fragments.SearchFragment;
 import com.pawelpaszki.youtubeplus.interfaces.OnItemSelected;
@@ -86,7 +83,6 @@ import java.util.List;
 import static android.content.Intent.FLAG_RECEIVER_FOREGROUND;
 import static com.pawelpaszki.youtubeplus.R.layout.suggestions;
 import static com.pawelpaszki.youtubeplus.adapters.NoThumbnailAdapter.downloadedRearranged;
-import static com.pawelpaszki.youtubeplus.adapters.NoThumbnailAdapter.playListRearranged;
 import static com.pawelpaszki.youtubeplus.adapters.SimpleItemTouchHelperCallback.setIsLongPressEnabled;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACITON_ACTIVITY_RESUMED;
 import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_LOOPING_SELECTED;
@@ -136,13 +132,11 @@ public class MainActivity extends AppCompatActivity implements
     private FloatingActionButton mGoToDownloads;
     private FloatingActionButton mGoToRecent;
     private FloatingActionButton mGoToSearch;
-    private FloatingActionButton mGoToPlaylist;
     public static String fragmentName = "";
     public static int currentFragment = 0;
 
     private SearchFragment searchFragment;
     private RecentlyWatchedFragment recentlyPlayedFragment;
-    private PlayListsFragment playListsFragment;
     private DownloadedFragment downloadedFragment;
 
     private BroadcastReceiver mPlaybackStartedReceiver = new BroadcastReceiver() {
@@ -250,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements
 
             @Override
             public void onPageSelected(int position) {
-                if(position == 3) {
+                if(position == 2) {
                     expandToolbar();
                 } else {
                     ViewGroup.LayoutParams params = toolbar.getLayoutParams();
@@ -368,12 +362,10 @@ public class MainActivity extends AppCompatActivity implements
         });
 
         mGoToDownloads = (FloatingActionButton) findViewById(R.id.downloaded);
-        mGoToPlaylist = (FloatingActionButton) findViewById(R.id.playlist);
         mGoToRecent = (FloatingActionButton) findViewById(R.id.recent);
         mGoToSearch = (FloatingActionButton) findViewById(R.id.search);
         mHideControls = (FloatingActionButton) findViewById(R.id.hide);
         mControls.add(mGoToDownloads);
-        mControls.add(mGoToPlaylist);
         mControls.add(mGoToRecent);
         mControls.add(mGoToSearch);
         mControls.add(mHideControls);
@@ -386,12 +378,6 @@ public class MainActivity extends AppCompatActivity implements
                         if(downloadedRearranged) {
                             downloadedRearranged = false;
                             downloadedFragment.refreshDB();
-                        }
-                    }
-                    if(viewPager.getCurrentItem() == 1 && j != 1) {
-                        if(playListRearranged) {
-                            playListRearranged = false;
-                            playListsFragment.refreshDB();
                         }
                     }
                     if(j!= 0) {
@@ -436,10 +422,6 @@ public class MainActivity extends AppCompatActivity implements
             downloadedRearranged = false;
             downloadedFragment.refreshDB();
         }
-        if(playListRearranged) {
-            playListRearranged = false;
-            playListsFragment.refreshDB();
-        }
     }
 
     private void minimiseToolbar() {
@@ -473,9 +455,6 @@ public class MainActivity extends AppCompatActivity implements
         Resources res = getResources();
         Drawable icon;
         switch(fragmentName) {
-            case PLAYLISTS:
-                icon = res.getDrawable(R.drawable.ic_action_playlist);
-                break;
             case RECENT:
                 icon = res.getDrawable(R.drawable.ic_recently_wached);
                 break;
@@ -496,7 +475,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        mGestureDetector.onTouchEvent(event);
+            mGestureDetector.onTouchEvent(event);
         return false;
     }
 
@@ -537,7 +516,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private void showNavigationButtons() {
         if(mControlsVisible) {
-            for(int i = 100, j = 4; i <= 500; i = i + 100, j--) {
+            for(int i = 100, j = 3; i <= 400; i = i + 100, j--) {
                 final int jj = j;
                 mControls.get(j).setVisibility(View.VISIBLE);
                 final Animation fadeIn = new AlphaAnimation(1,0);
@@ -554,7 +533,7 @@ public class MainActivity extends AppCompatActivity implements
                 }, i * 2);
             }
         } else {
-            for(int i = 100, j = 0; i <= 500; i = i + 100, j++) {
+            for(int i = 100, j = 0; i <= 400; i = i + 100, j++) {
                 mControls.get(j).setVisibility(View.VISIBLE);
                 final Animation fadeIn = new AlphaAnimation(0,1);
                 fadeIn.setStartOffset(i);
@@ -824,12 +803,10 @@ public class MainActivity extends AppCompatActivity implements
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
 
         searchFragment = SearchFragment.newInstance();
-        playListsFragment = PlayListsFragment.newInstance();
         recentlyPlayedFragment = RecentlyWatchedFragment.newInstance();
         downloadedFragment = DownloadedFragment.newInstance();
 
         adapter.addFragment(downloadedFragment, null);
-        adapter.addFragment(playListsFragment, null);
         adapter.addFragment(recentlyPlayedFragment, null);
         adapter.addFragment(searchFragment, null);
         viewPager.setAdapter(adapter);

@@ -36,24 +36,11 @@
         app:rippleColor="@android:color/transparent" />
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/playlist"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/viewpager"
-        android:layout_below="@+id/downloaded"
-        android:layout_marginTop="40dp"
-        android:src="@drawable/ic_action_playlist"
-        android:tint="@color/colorPrimaryDark"
-        app:backgroundTint="@android:color/transparent"
-        app:elevation="0dp"
-        app:rippleColor="@android:color/transparent" />
-
-    <android.support.design.widget.FloatingActionButton
         android:id="@+id/recent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/viewpager"
-        android:layout_below="@+id/playlist"
+        android:layout_below="@+id/downloaded"
         android:layout_marginTop="40dp"
         android:src="@drawable/ic_recently_wached"
         android:tint="@color/colorPrimaryDark"

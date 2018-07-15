@@ -101,33 +101,12 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.ViewHolder
             final YouTubeVideo video = (YouTubeVideo) v.getTag();
             AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
             builder.setTitle("Please choose option");
-            String[] searchOptions = new String[]{"add to playlist", "download video", "download audio"};
-            String[] recentOptions = new String[] {"add to playlist", "remove from the list", "download video", "download audio"};
-            final String[] options;
-            if (mFragment.equals("searchFragment")) {
-                options = searchOptions;
-            } else {
-                options = recentOptions;
-            }
+            final String[] options = new String[]{"download audio"};
+
             builder.setSingleChoiceItems(options, -1, new DialogInterface
                     .OnClickListener() {
                 public void onClick(DialogInterface dialog, int item) {
                     switch (options[item]) {
-                        case "add to playlist":
-                            if (itemEventsListener != null) {
-                                itemEventsListener.onAddClicked(video);
-                            }
-                            break;
-                        case "remove from the list":
-                            if (itemEventsListener != null) {
-                                itemEventsListener.onRemoveClicked(video);
-                            }
-                            break;
-                        case "download video":
-                            if (itemEventsListener != null) {
-                                itemEventsListener.onDownloadClicked(video, Config.MediaType.VIDEO);
-                            }
-                            break;
                         case "download audio":
                             if (itemEventsListener != null) {
                                 itemEventsListener.onDownloadClicked(video, Config.MediaType.AUDIO);

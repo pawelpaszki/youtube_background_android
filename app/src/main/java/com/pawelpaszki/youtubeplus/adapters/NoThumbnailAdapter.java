@@ -72,53 +72,53 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
     public void onBindViewHolder(NoThumbnailAdapter.ViewHolder holder, final int position) {
         final YouTubeVideo video = videoList.get(position);
         holder.title.setText(video.getTitle());
-        holder.extras.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                builder.setTitle("Please choose option");
-                String [] downloadsOptions = new String[] {"add to playlist", "remove from the list"};
-                String [] playlistsOptions = new String[] {"add to playlist", "remove from the list", "download video", "download audio"};
-                final String [] options;
-                if(mFragment.equals("downloadedFragment")) {
-                    options = downloadsOptions;
-                } else {
-                    options = playlistsOptions;
-                }
-                builder.setSingleChoiceItems(options, -1, new DialogInterface
-                        .OnClickListener() {
-                    public void onClick(DialogInterface dialog, int item) {
-                        switch (options[item]) {
-                            case "add to playlist":
-                                if (itemEventsListener != null) {
-                                    itemEventsListener.onAddClicked(video);
-                                }
-                                break;
-                            case "remove from the list":
-                                if (itemEventsListener != null) {
-                                    itemEventsListener.onRemoveClicked(video);
-                                }
-                                break;
-                            case "download video":
-                                if (itemEventsListener != null) {
-                                    itemEventsListener.onDownloadClicked(video, Config.MediaType.VIDEO);
-                                }
-                                break;
-                            case "download audio":
-                                if (itemEventsListener != null) {
-                                    itemEventsListener.onDownloadClicked(video, Config.MediaType.AUDIO);
-                                }
-                                break;
-                        }
-                        dialog.dismiss();
-
-                    }
-                });
-                AlertDialog alert = builder.create();
-                alert.show();
-            }
-
-        });
+//        holder.title.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+//                builder.setTitle("Please choose option");
+//                String [] downloadsOptions = new String[] {"add to playlist", "remove from the list"};
+//                String [] playlistsOptions = new String[] {"add to playlist", "remove from the list", "download video", "download audio"};
+//                final String [] options;
+//                if(mFragment.equals("downloadedFragment")) {
+//                    options = downloadsOptions;
+//                } else {
+//                    options = playlistsOptions;
+//                }
+//                builder.setSingleChoiceItems(options, -1, new DialogInterface
+//                        .OnClickListener() {
+//                    public void onClick(DialogInterface dialog, int item) {
+//                        switch (options[item]) {
+//                            case "add to playlist":
+//                                if (itemEventsListener != null) {
+//                                    itemEventsListener.onAddClicked(video);
+//                                }
+//                                break;
+//                            case "remove from the list":
+//                                if (itemEventsListener != null) {
+//                                    itemEventsListener.onRemoveClicked(video);
+//                                }
+//                                break;
+//                            case "download video":
+//                                if (itemEventsListener != null) {
+//                                    itemEventsListener.onDownloadClicked(video, Config.MediaType.VIDEO);
+//                                }
+//                                break;
+//                            case "download audio":
+//                                if (itemEventsListener != null) {
+//                                    itemEventsListener.onDownloadClicked(video, Config.MediaType.AUDIO);
+//                                }
+//                                break;
+//                        }
+//                        dialog.dismiss();
+//
+//                    }
+//                });
+//                AlertDialog alert = builder.create();
+//                alert.show();
+//            }
+//
+//        });
         holder.title.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -169,11 +169,9 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
 
         TextView title;
         TextView duration;
-        ImageView extras;
 
         ViewHolder(View itemView) {
             super(itemView);
-            extras = (ImageView) itemView.findViewById(R.id.extra_options_iv);
             title = (TextView) itemView.findViewById(R.id.item_title);
             duration = (TextView) itemView.findViewById(R.id.item_duration);
         }
