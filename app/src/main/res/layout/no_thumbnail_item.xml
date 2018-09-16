@@ -17,10 +17,23 @@
         android:weightSum="100">
 
         <RelativeLayout
+            android:id="@+id/extra_options"
             android:layout_width="0dp"
+
             android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:layout_weight="3">
+            android:layout_weight="10">
+
+            <ImageView
+                android:id="@+id/extra_options_iv"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:gravity="center_vertical"
+                android:src="@drawable/ic_options"
+                android:textStyle="bold"/>
+
+
         </RelativeLayout>
 
         <RelativeLayout
@@ -29,11 +42,12 @@
 
             android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:layout_weight="74">
+            android:layout_weight="70">
 
             <TextView
                 android:id="@+id/item_title"
                 android:layout_width="match_parent"
+                android:paddingLeft="5dp"
                 android:layout_height="match_parent"
                 android:layout_centerInParent="true"
                 android:gravity="center_vertical"
@@ -63,12 +77,6 @@
                 android:textStyle="bold"/>
         </RelativeLayout>
 
-        <RelativeLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:layout_weight="3">
-        </RelativeLayout>
 
     </LinearLayout>
 </RelativeLayout>

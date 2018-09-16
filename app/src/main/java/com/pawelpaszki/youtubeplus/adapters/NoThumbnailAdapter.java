@@ -32,23 +32,23 @@ import static com.pawelpaszki.youtubeplus.utils.Config.ACTION_VIDEO_UPDATE;
  */
 
 public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.ViewHolder> implements ItemTouchHelperAdapter
-         {
+{
 
     private Context context;
 
-     public ArrayList<YouTubeVideo> getVideoList() {
-         return videoList;
-     }
+    public ArrayList<YouTubeVideo> getVideoList() {
+        return videoList;
+    }
 
-     public ArrayList<YouTubeVideo> getIds() {
-         return ids;
-     }
+    public ArrayList<YouTubeVideo> getIds() {
+        return ids;
+    }
 
-     public ArrayList<YouTubeVideo> ids = new ArrayList<>();
+    public ArrayList<YouTubeVideo> ids = new ArrayList<>();
 
 
 
-     private ArrayList<YouTubeVideo> videoList;
+    private ArrayList<YouTubeVideo> videoList;
     private String mFragment;
     public static boolean downloadedRearranged;
     public static boolean playListRearranged;
@@ -72,53 +72,26 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
     public void onBindViewHolder(NoThumbnailAdapter.ViewHolder holder, final int position) {
         final YouTubeVideo video = videoList.get(position);
         holder.title.setText(video.getTitle());
-//        holder.title.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-//                builder.setTitle("Please choose option");
-//                String [] downloadsOptions = new String[] {"add to playlist", "remove from the list"};
-//                String [] playlistsOptions = new String[] {"add to playlist", "remove from the list", "download video", "download audio"};
-//                final String [] options;
-//                if(mFragment.equals("downloadedFragment")) {
-//                    options = downloadsOptions;
-//                } else {
-//                    options = playlistsOptions;
-//                }
-//                builder.setSingleChoiceItems(options, -1, new DialogInterface
-//                        .OnClickListener() {
-//                    public void onClick(DialogInterface dialog, int item) {
-//                        switch (options[item]) {
-//                            case "add to playlist":
-//                                if (itemEventsListener != null) {
-//                                    itemEventsListener.onAddClicked(video);
-//                                }
-//                                break;
-//                            case "remove from the list":
-//                                if (itemEventsListener != null) {
-//                                    itemEventsListener.onRemoveClicked(video);
-//                                }
-//                                break;
-//                            case "download video":
-//                                if (itemEventsListener != null) {
-//                                    itemEventsListener.onDownloadClicked(video, Config.MediaType.VIDEO);
-//                                }
-//                                break;
-//                            case "download audio":
-//                                if (itemEventsListener != null) {
-//                                    itemEventsListener.onDownloadClicked(video, Config.MediaType.AUDIO);
-//                                }
-//                                break;
-//                        }
-//                        dialog.dismiss();
-//
-//                    }
-//                });
-//                AlertDialog alert = builder.create();
-//                alert.show();
-//            }
-//
-//        });
+        holder.extras.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+                builder.setTitle("Please choose option");
+                final String [] options = new String[] {"remove from the list"};
+                builder.setSingleChoiceItems(options, -1, new DialogInterface
+                        .OnClickListener() {
+                    public void onClick(DialogInterface dialog, int item) {
+                        if (itemEventsListener != null) {
+                            itemEventsListener.onRemoveClicked(video);
+                        }
+                        dialog.dismiss();
+                    }
+                });
+                AlertDialog alert = builder.create();
+                alert.show();
+            }
+
+        });
         holder.title.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -136,42 +109,44 @@ public class NoThumbnailAdapter extends RecyclerView.Adapter<NoThumbnailAdapter.
         return (null != videoList ? videoList.size() : 0);
     }
 
-     @Override
-     public void onItemMove(int fromPosition, int toPosition) {
-         if(isLongPressEnabled()) {
-             if(MainActivity.currentFragment == 0) {
-                 downloadedRearranged = true;
-                 Intent new_intent = new Intent();
-                 new_intent.setAction(ACTION_DOWNLOADED_LIST_REARRANGED);
-                 context.sendBroadcast(new_intent);
-             } else if (MainActivity.currentFragment == 1) {
-                 playListRearranged = true;
-                 Intent new_intent = new Intent();
-                 new_intent.setAction(ACTION_PLAYLISTS_REARRANGED);
-                 context.sendBroadcast(new_intent);
-             }
-             ids = swapArrayItems(ids, fromPosition, toPosition);
-             videoList = swapArrayItems(ids, fromPosition, toPosition);
-             notifyItemMoved(fromPosition, toPosition);
-         }
-     }
+    @Override
+    public void onItemMove(int fromPosition, int toPosition) {
+        if(isLongPressEnabled()) {
+            if(MainActivity.currentFragment == 0) {
+                downloadedRearranged = true;
+                Intent new_intent = new Intent();
+                new_intent.setAction(ACTION_DOWNLOADED_LIST_REARRANGED);
+                context.sendBroadcast(new_intent);
+            } else if (MainActivity.currentFragment == 1) {
+                playListRearranged = true;
+                Intent new_intent = new Intent();
+                new_intent.setAction(ACTION_PLAYLISTS_REARRANGED);
+                context.sendBroadcast(new_intent);
+            }
+            ids = swapArrayItems(ids, fromPosition, toPosition);
+            videoList = swapArrayItems(ids, fromPosition, toPosition);
+            notifyItemMoved(fromPosition, toPosition);
+        }
+    }
 
-     private ArrayList<YouTubeVideo> swapArrayItems(ArrayList<YouTubeVideo> list, int fromPosition, int toPosition) {
-         ArrayList<YouTubeVideo> newList = new ArrayList<>();
-         newList.addAll(list);
-         newList.set(fromPosition, list.get(toPosition));
-         newList.set(toPosition, list.get(fromPosition));
-         return newList;
-     }
+    private ArrayList<YouTubeVideo> swapArrayItems(ArrayList<YouTubeVideo> list, int fromPosition, int toPosition) {
+        ArrayList<YouTubeVideo> newList = new ArrayList<>();
+        newList.addAll(list);
+        newList.set(fromPosition, list.get(toPosition));
+        newList.set(toPosition, list.get(fromPosition));
+        return newList;
+    }
 
 
-     class ViewHolder extends RecyclerView.ViewHolder{
+    class ViewHolder extends RecyclerView.ViewHolder{
 
         TextView title;
         TextView duration;
+        ImageView extras;
 
         ViewHolder(View itemView) {
             super(itemView);
+            extras = (ImageView) itemView.findViewById(R.id.extra_options_iv);
             title = (TextView) itemView.findViewById(R.id.item_title);
             duration = (TextView) itemView.findViewById(R.id.item_duration);
         }
